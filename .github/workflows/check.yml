@@ -11,6 +11,11 @@ on:
         required: false
         default: false
         type: boolean
+      send_current_prices:
+        description: "price_urls.txt 현재 가격 목록 보내기"
+        required: false
+        default: false
+        type: boolean
 
 permissions:
   contents: write
@@ -53,6 +58,7 @@ jobs:
       - name: Check prices
         env:
           DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+          SEND_CURRENT_REPORT: ${{ github.event_name == 'workflow_dispatch' && inputs.send_current_prices }}
         run: python price_watch.py
 
       - name: Save state

@@ -1,3 +1,28 @@
 {
-  "items": {}
+  "items": {
+    "https://store.onstove.com/ko/games/4067": {
+      "title": "칭송받는 자 - DLC 합본팩 컬렉션",
+      "price": "₩100,000 (-20%)",
+      "region": "한국",
+      "url": "https://store.onstove.com/ko/games/4067"
+    },
+    "https://store.onstove.com/ko/games/4692": {
+      "title": "네코냥 컬렉션",
+      "price": "₩82,800 (-10%)",
+      "region": "한국",
+      "url": "https://store.onstove.com/ko/games/4692"
+    },
+    "https://store.steampowered.com/app/936160/Atelier_Rorona_The_Alchemist_of_Arland_DX/?l=koreana": {
+      "title": "ロロナのアトリエ ～アーランドの錬金術士～ DX",
+      "price": "¥5,280",
+      "region": "일본",
+      "url": "https://store.steampowered.com/app/936160/Atelier_Rorona_The_Alchemist_of_Arland_DX/?l=koreana"
+    },
+    "https://store.steampowered.com/app/275850/No_Mans_Sky/": {
+      "title": "No Man's Sky",
+      "price": "₩25,200",
+      "region": "한국",
+      "url": "https://store.steampowered.com/app/275850/No_Mans_Sky/"
+    }
+  }
 }

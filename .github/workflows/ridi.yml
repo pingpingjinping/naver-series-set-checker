@@ -1,8 +1,7 @@
-name: Scheduled Ridi Comic Calendar Watch
+name: WalnutPi Ridi Comic Calendar Watch
 
 on:
-  schedule:
-    - cron: "2 21 * * *" # 06:02 KST
+  workflow_dispatch:
 
 permissions:
   contents: write

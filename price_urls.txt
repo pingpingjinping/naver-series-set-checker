@@ -2,5 +2,4 @@
 # 빈 줄과 #으로 시작하는 줄은 무시됩니다.
 https://store.onstove.com/ko/games/4067
 https://store.onstove.com/ko/games/4692
-https://store.steampowered.com/app/936160/Atelier_Rorona_The_Alchemist_of_Arland_DX/?l=koreana
-https://store.steampowered.com/app/275850/No_Mans_Sky/
+

@@ -1,0 +1,25 @@
+name: GitHub Schedule Heartbeat
+
+on:
+  schedule:
+    # 06:05 KST = 21:05 UTC (previous calendar day in UTC)
+    - cron: "5 21 * * *"
+  workflow_dispatch:
+
+jobs:
+  heartbeat:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send GitHub schedule recovery signal
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.SERIES_DISCORD_WEBHOOK }}
+        run: |
+          python3 - <<'PY' > /tmp/heartbeat.json
+          import json
+          print(json.dumps({"content": "\n".join(["now github action working"] * 20)}))
+          PY
+
+          curl -fsS \
+            -H 'Content-Type: application/json' \
+            --data-binary @/tmp/heartbeat.json \
+            "$DISCORD_WEBHOOK"

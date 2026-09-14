@@ -85,7 +85,7 @@ def parse_stove(url: str, soup: BeautifulSoup, text: str):
             price = clean_text(m.group(0))
             if not ("₩" in price or "￦" in price or price.endswith("원")):
                 raise ValueError(f"STOVE가 한국 원화가 아닌 가격({price})을 반환했습니다. 한국 국가 쿠키 적용 여부를 확인해야 합니다.")
-            return title, price
+            return title, price, "한국"
 
     buy_idx = text.find("구매")
     if buy_idx >= 0:
@@ -93,9 +93,19 @@ def parse_stove(url: str, soup: BeautifulSoup, text: str):
         prices = PRICE_RE.findall(section)
         krw_prices = [p for p in prices if ("₩" in p or "￦" in p or p.endswith("원"))]
         if krw_prices:
-            return title, clean_text(krw_prices[-1])
+            return title, clean_text(krw_prices[-1]), "한국"
 
     raise ValueError("STOVE 페이지에서 한국 원화 판매 가격을 찾지 못했습니다.")
+
+
+def steam_appdetails(appid: str, cc: str, lang: str):
+    api_url = f"https://store.steampowered.com/api/appdetails?appids={appid}&cc={cc}&l={lang}"
+    r = requests.get(api_url, headers=HEADERS, timeout=30)
+    r.raise_for_status()
+    data = r.json().get(appid, {})
+    if not data.get("success"):
+        return None
+    return data.get("data", {})
 
 
 def parse_steam(url: str):
@@ -103,24 +113,30 @@ def parse_steam(url: str):
     if not m:
         raise ValueError("Steam URL에서 App ID를 찾지 못했습니다.")
     appid = m.group(1)
-    api_url = f"https://store.steampowered.com/api/appdetails?appids={appid}&cc=kr&l=koreana"
-    r = requests.get(api_url, headers=HEADERS, timeout=30)
-    r.raise_for_status()
-    data = r.json().get(appid, {})
-    if not data.get("success"):
-        raise ValueError("Steam Store API에서 상품 정보를 받지 못했습니다.")
-    info = data.get("data", {})
-    title = info.get("name") or f"Steam App {appid}"
-    if info.get("is_free"):
-        return title, "₩0"
-    po = info.get("price_overview")
-    if not po:
-        raise ValueError("Steam 상품에 현재 판매 가격 정보가 없습니다.")
-    currency = po.get("currency")
-    if currency != "KRW":
-        raise ValueError(f"Steam API가 KRW가 아닌 통화({currency})를 반환했습니다.")
-    final = int(po.get("final", 0))
-    return title, f"₩{final:,}"
+
+    # 1순위: 한국 스토어
+    info = steam_appdetails(appid, "kr", "koreana")
+    if info:
+        title = info.get("name") or f"Steam App {appid}"
+        if info.get("is_free"):
+            return title, "₩0", "한국"
+        po = info.get("price_overview")
+        if po and po.get("currency") == "KRW":
+            final = int(po.get("final", 0))
+            return title, f"₩{final:,}", "한국"
+
+    # 2순위: 한국 미판매/지역락이면 일본 스토어
+    info = steam_appdetails(appid, "jp", "japanese")
+    if info:
+        title = info.get("name") or f"Steam App {appid}"
+        if info.get("is_free"):
+            return title, "¥0", "일본"
+        po = info.get("price_overview")
+        if po and po.get("currency") == "JPY":
+            final = int(po.get("final", 0))
+            return title, f"¥{final:,}", "일본"
+
+    raise ValueError("Steam 한국/일본 스토어 모두에서 판매 가격을 찾지 못했습니다.")
 
 
 def parse_generic(url: str, soup: BeautifulSoup, text: str):
@@ -142,7 +158,7 @@ def parse_generic(url: str, soup: BeautifulSoup, text: str):
                 offers = obj.get("offers")
                 if isinstance(offers, dict) and offers.get("price") is not None:
                     currency = offers.get("priceCurrency", "")
-                    return title, f"{currency} {offers['price']}".strip()
+                    return title, f"{currency} {offers['price']}".strip(), ""
                 stack.extend(v for v in obj.values() if isinstance(v, (dict, list)))
             elif isinstance(obj, list):
                 stack.extend(obj)
@@ -158,11 +174,11 @@ def parse_generic(url: str, soup: BeautifulSoup, text: str):
             cur = soup.find("meta", attrs={"itemprop": "priceCurrency"})
             if cur and cur.get("content"):
                 currency = cur["content"]
-            return title, f"{currency} {tag['content']}".strip()
+            return title, f"{currency} {tag['content']}".strip(), ""
 
     m = PRICE_RE.search(text)
     if m:
-        return title, clean_text(m.group(0))
+        return title, clean_text(m.group(0)), ""
 
     raise ValueError("가격을 자동 추출하지 못했습니다. 이 사이트용 파서 추가가 필요합니다.")
 
@@ -199,13 +215,15 @@ def save_state(state):
     STATE_FILE.write_text(json.dumps(state, ensure_ascii=False, indent=2), encoding="utf-8")
 
 
-def send_discord(title: str, old_price: str, new_price: str, url: str):
+def send_discord(title: str, old_price: str, new_price: str, url: str, region: str = ""):
     if not DISCORD_WEBHOOK:
         raise RuntimeError("DISCORD_WEBHOOK secret이 설정되어 있지 않습니다.")
 
+    region_line = f"지역: **{region}**\n" if region else ""
     content = (
         "💰 **가격 변경 감지**\n\n"
         f"**{title}**\n"
+        f"{region_line}"
         f"이전: `{old_price}`\n"
         f"현재: `{new_price}`\n"
         f"<{url}>"
@@ -230,26 +248,30 @@ def main():
         try:
             host = urlparse(url).netloc.lower()
             if host.endswith("store.steampowered.com"):
-                title, price = parse_page(url)
+                title, price, region = parse_page(url)
             else:
                 html = fetch(url)
-                title, price = parse_page(url, html)
+                title, price, region = parse_page(url, html)
 
             prev = old_items.get(url)
 
             new_items[url] = {
                 "title": title,
                 "price": price,
+                "region": region,
                 "url": url,
             }
 
             if prev is None:
-                print(f"기준점 등록: {title} = {price}")
-            elif prev.get("price") != price:
-                print(f"가격 변경: {title}: {prev.get('price')} -> {price}")
-                send_discord(title, prev.get("price", "알 수 없음"), price, url)
+                suffix = f" ({region})" if region else ""
+                print(f"기준점 등록: {title} = {price}{suffix}")
+            elif prev.get("price") != price or prev.get("region", "") != region:
+                old_region = prev.get("region", "")
+                print(f"가격/지역 변경: {title}: {prev.get('price')} [{old_region}] -> {price} [{region}]")
+                send_discord(title, prev.get("price", "알 수 없음"), price, url, region)
             else:
-                print(f"변경 없음: {title} = {price}")
+                suffix = f" ({region})" if region else ""
+                print(f"변경 없음: {title} = {price}{suffix}")
 
         except Exception as e:
             failures.append(f"{url}: {e}")

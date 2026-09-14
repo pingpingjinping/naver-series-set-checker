@@ -1,15 +1,6 @@
-name: Naver Series & Price Watch
+name: Manual Watch & Price Manager
 
 on:
-  schedule:
-    # 한국시간 매일 오전 6시 = UTC 21:00 (전날): 네이버 시리즈 체크
-    - cron: "0 21 * * *"
-    # 한국시간 매일 오전 6시 1분 = UTC 21:01 (전날): 가격 체크
-    - cron: "1 21 * * *"
-    # 한국시간 매일 오전 6시 2분 = UTC 21:02 (전날): 리디 만화 캘린더 체크
-    - cron: "2 21 * * *"
-    # 한국시간 매일 오전 6시 3분 = UTC 21:03 (전날): 알라딘 eBook 만화 캘린더 체크
-    - cron: "3 21 * * *"
   workflow_dispatch:
     inputs:
       send_test:
@@ -37,7 +28,7 @@ permissions:
   contents: write
 
 concurrency:
-  group: naver-series-set-watch
+  group: watch-state-writes
   cancel-in-progress: false
 
 jobs:
@@ -49,7 +40,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Send test notifications
-        if: ${{ github.event_name == 'workflow_dispatch' && inputs.send_test }}
+        if: ${{ inputs.send_test }}
         env:
           SERIES_DISCORD_WEBHOOK: ${{ secrets.SERIES_DISCORD_WEBHOOK }}
           PRICE_DISCORD_WEBHOOK: ${{ secrets.PRICE_DISCORD_WEBHOOK }}
@@ -73,39 +64,35 @@ jobs:
         run: pip install -r requirements.txt
 
       - name: Manage price URLs
-        if: ${{ github.event_name == 'workflow_dispatch' && (inputs.add_urls != '' || inputs.remove_numbers != '') }}
+        if: ${{ inputs.add_urls != '' || inputs.remove_numbers != '' }}
         env:
           ADD_URLS: ${{ inputs.add_urls }}
           REMOVE_NUMBERS: ${{ inputs.remove_numbers }}
         run: python manage_price_urls.py
 
       - name: Check Naver Series
-        if: ${{ github.event_name == 'workflow_dispatch' || github.event.schedule == '0 21 * * *' }}
         env:
           DISCORD_WEBHOOK: ${{ secrets.SERIES_DISCORD_WEBHOOK }}
         run: python check.py
 
       - name: Check prices
-        if: ${{ github.event_name == 'workflow_dispatch' || github.event.schedule == '1 21 * * *' }}
         env:
           DISCORD_WEBHOOK: ${{ secrets.PRICE_DISCORD_WEBHOOK }}
           SEND_CURRENT_REPORT: "0"
         run: python price_watch.py
 
       - name: Check Ridi comic calendar
-        if: ${{ github.event_name == 'workflow_dispatch' || github.event.schedule == '2 21 * * *' }}
         env:
           DISCORD_WEBHOOK: ${{ secrets.SERIES_DISCORD_WEBHOOK }}
         run: python ridi_calendar_watch.py
 
       - name: Check Aladin ebook comic calendar
-        if: ${{ github.event_name == 'workflow_dispatch' || github.event.schedule == '3 21 * * *' }}
         env:
           DISCORD_WEBHOOK: ${{ secrets.SERIES_DISCORD_WEBHOOK }}
         run: python aladin_calendar_watch.py
 
       - name: Send numbered current price list
-        if: ${{ always() && github.event_name == 'workflow_dispatch' && inputs.send_current_prices }}
+        if: ${{ always() && inputs.send_current_prices }}
         env:
           DISCORD_WEBHOOK: ${{ secrets.PRICE_DISCORD_WEBHOOK }}
         run: python numbered_price_report.py

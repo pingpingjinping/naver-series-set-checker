@@ -42,15 +42,20 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Send test notification
+      - name: Send test notifications
         if: ${{ github.event_name == 'workflow_dispatch' && inputs.send_test }}
         env:
-          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+          SERIES_DISCORD_WEBHOOK: ${{ secrets.SERIES_DISCORD_WEBHOOK }}
+          PRICE_DISCORD_WEBHOOK: ${{ secrets.PRICE_DISCORD_WEBHOOK }}
         run: |
           curl -fsS \
             -H 'Content-Type: application/json' \
-            -d '{"content":"✅ 네이버 시리즈 / 가격 체크 알림 테스트 성공! GitHub Actions → Discord 연결이 정상입니다."}' \
-            "$DISCORD_WEBHOOK"
+            -d '{"content":"✅ 네이버 시리즈 알림 테스트 성공!"}' \
+            "$SERIES_DISCORD_WEBHOOK"
+          curl -fsS \
+            -H 'Content-Type: application/json' \
+            -d '{"content":"✅ 가격 추적 알림 테스트 성공!"}' \
+            "$PRICE_DISCORD_WEBHOOK"
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -69,19 +74,19 @@ jobs:
 
       - name: Check Naver Series
         env:
-          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+          DISCORD_WEBHOOK: ${{ secrets.SERIES_DISCORD_WEBHOOK }}
         run: python check.py
 
       - name: Check prices
         env:
-          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+          DISCORD_WEBHOOK: ${{ secrets.PRICE_DISCORD_WEBHOOK }}
           SEND_CURRENT_REPORT: "0"
         run: python price_watch.py
 
       - name: Send numbered current price list
         if: ${{ always() && github.event_name == 'workflow_dispatch' && inputs.send_current_prices }}
         env:
-          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+          DISCORD_WEBHOOK: ${{ secrets.PRICE_DISCORD_WEBHOOK }}
         run: python numbered_price_report.py
 
       - name: Save state and URL list

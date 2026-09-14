@@ -1,9 +1,6 @@
-name: Scheduled Naver Series Watch
+name: WalnutPi Naver Series Watch
 
 on:
-  schedule:
-    # Temporary test: 08:10 KST = 23:10 UTC (previous day)
-    - cron: "10 23 * * *"
   workflow_dispatch:
 
 permissions:

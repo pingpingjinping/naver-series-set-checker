@@ -83,9 +83,13 @@ def parse_stove(url: str, soup: BeautifulSoup, text: str):
         m = PRICE_RE.search(tail)
         if m:
             price = clean_text(m.group(0))
-            if not ("₩" in price or "￦" in price or price.endswith("원")):
-                raise ValueError(f"STOVE가 한국 원화가 아닌 가격({price})을 반환했습니다.")
-            return title, price, "한국"
+            if "₩" in price or "￦" in price or price.endswith("원"):
+                return title, price, "한국"
+            # GitHub Actions 러너에서는 STOVE가 국가 쿠키를 줘도 USD를 반환하는 경우가 있음.
+            # 이때 조회 자체를 실패시키지 않고 글로벌 표시 가격을 추적한다.
+            if "$" in price:
+                return title, price, "글로벌(USD)"
+            return title, price, "STOVE"
 
     buy_idx = text.find("구매")
     if buy_idx >= 0:
@@ -94,8 +98,11 @@ def parse_stove(url: str, soup: BeautifulSoup, text: str):
         krw_prices = [p for p in prices if ("₩" in p or "￦" in p or p.endswith("원"))]
         if krw_prices:
             return title, clean_text(krw_prices[-1]), "한국"
+        usd_prices = [p for p in prices if "$" in p]
+        if usd_prices:
+            return title, clean_text(usd_prices[-1]), "글로벌(USD)"
 
-    raise ValueError("STOVE 페이지에서 한국 원화 판매 가격을 찾지 못했습니다.")
+    raise ValueError("STOVE 페이지에서 판매 가격을 찾지 못했습니다.")
 
 
 def steam_appdetails(appid: str, cc: str, lang: str):
@@ -106,6 +113,12 @@ def steam_appdetails(appid: str, cc: str, lang: str):
     if not data.get("success"):
         return None
     return data.get("data", {})
+
+
+def steam_minor_to_major(value):
+    # Steam appdetails의 price_overview.final은 통화의 1/100 단위 정수로 내려온다.
+    # JPY/KRW도 예: 528000 -> 5,280 / 4500000 -> 45,000 으로 처리해야 한다.
+    return int(value or 0) // 100
 
 
 def parse_steam(url: str):
@@ -121,7 +134,8 @@ def parse_steam(url: str):
             return title, "₩0", "한국"
         po = info.get("price_overview")
         if po and po.get("currency") == "KRW":
-            return title, f"₩{int(po.get('final', 0)):,}", "한국"
+            final = steam_minor_to_major(po.get("final"))
+            return title, f"₩{final:,}", "한국"
 
     info = steam_appdetails(appid, "jp", "japanese")
     if info:
@@ -130,7 +144,8 @@ def parse_steam(url: str):
             return title, "¥0", "일본"
         po = info.get("price_overview")
         if po and po.get("currency") == "JPY":
-            return title, f"¥{int(po.get('final', 0)):,}", "일본"
+            final = steam_minor_to_major(po.get("final"))
+            return title, f"¥{final:,}", "일본"
 
     raise ValueError("Steam 한국/일본 스토어 모두에서 판매 가격을 찾지 못했습니다.")
 

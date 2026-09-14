@@ -1,0 +1,44 @@
+name: Scheduled Aladin eBook Comic Calendar Watch
+
+on:
+  schedule:
+    - cron: "3 21 * * *" # 06:03 KST
+
+permissions:
+  contents: write
+
+concurrency:
+  group: watch-state-writes
+  cancel-in-progress: false
+
+jobs:
+  aladin:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Check Aladin ebook comic calendar
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.SERIES_DISCORD_WEBHOOK }}
+        run: python aladin_calendar_watch.py
+
+      - name: Save state
+        run: |
+          if git diff --quiet -- aladin_calendar_state.json; then
+            echo "aladin_calendar_state.json 변경 없음"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add aladin_calendar_state.json
+          git commit -m "chore: update Aladin calendar state"
+          git push

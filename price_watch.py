@@ -28,11 +28,9 @@ STOVE_PRODUCT_RE = re.compile(r"store\.onstove\.com/(?:[a-z]{2}/)?games/(\d+)", 
 STEAM_APP_RE = re.compile(r"store\.steampowered\.com/app/(\d+)", re.I)
 PRICE_RE = re.compile(r"(?:₩|￦|¥|￥|\$|€|£)\s?[0-9][0-9,.]*|[0-9][0-9,.]*\s?(?:원|엔)")
 
-# STOVE 상품 페이지의 가격/구매 관련 컴포넌트 타입.
-# component_id는 하드코딩하지 않고 /components API에서 매번 자동으로 찾는다.
 STOVE_PRICE_COMPONENT_TYPES = [
-    "INDIE_PRODUCT_PRECESSIONS_COMPONENT",  # 구매 가능 상품
-    "INDIE_PRODUCT_PURCHASE_COMPONENT",     # 장바구니/구매
+    "INDIE_PRODUCT_PRECESSIONS_COMPONENT",
+    "INDIE_PRODUCT_PURCHASE_COMPONENT",
 ]
 
 
@@ -73,8 +71,15 @@ def parse_title(soup: BeautifulSoup):
     return "가격 추적 상품"
 
 
+def get_any(d, *keys):
+    for key in keys:
+        if key in d and d[key] is not None:
+            return d[key]
+    return None
+
+
 def find_stove_price_object(obj, product_no: int):
-    """현재 상품의 KRW amount를 우선 찾고, 없으면 KRW 가격 객체를 후보로 반환한다."""
+    """STOVE 응답에서 현재 상품의 KRW 가격 객체를 찾는다. snake_case/camelCase 모두 지원."""
     fallback = None
 
     def walk(value):
@@ -83,10 +88,10 @@ def find_stove_price_object(obj, product_no: int):
             amount = value.get("amount")
             if isinstance(amount, dict):
                 currency = str(amount.get("currency") or "").upper()
-                sales_price = amount.get("salesPrice")
-                original_price = amount.get("originalPrice")
+                sales_price = get_any(amount, "sales_price", "salesPrice", "sale_price", "salePrice")
+                original_price = get_any(amount, "original_price", "originalPrice")
                 if currency == "KRW" and (sales_price is not None or original_price is not None):
-                    pn = value.get("productNo")
+                    pn = get_any(value, "product_no", "productNo")
                     if str(pn) == str(product_no):
                         return value
                     if fallback is None:
@@ -109,64 +114,6 @@ def find_stove_price_object(obj, product_no: int):
     return exact or fallback
 
 
-def debug_stove_response(data, component_id: str):
-    """Actions 로그에 가격 관련 키의 실제 JSON 경로/주변 객체를 짧게 출력한다."""
-    if isinstance(data, dict):
-        top = ", ".join(str(k) for k in list(data.keys())[:30])
-        print(f"STOVE DEBUG [{component_id}] top-level keys: {top}")
-    elif isinstance(data, list):
-        print(f"STOVE DEBUG [{component_id}] top-level: list(len={len(data)})")
-    else:
-        print(f"STOVE DEBUG [{component_id}] top-level: {type(data).__name__}")
-
-    interesting = {
-        "salesPrice",
-        "originalPrice",
-        "discountRate",
-        "currency",
-        "productNo",
-        "product_no",
-        "amount",
-        "price",
-        "salePrice",
-        "sale_price",
-    }
-    hits = []
-
-    def walk(value, path="$", depth=0):
-        if len(hits) >= 25 or depth > 20:
-            return
-        if isinstance(value, dict):
-            matched = [k for k in value.keys() if str(k) in interesting]
-            if matched:
-                try:
-                    preview = json.dumps(value, ensure_ascii=False, separators=(",", ":"))
-                except Exception:
-                    preview = repr(value)
-                if len(preview) > 1000:
-                    preview = preview[:1000] + "..."
-                hits.append((path, matched, preview))
-            for key, child in value.items():
-                walk(child, f"{path}.{key}", depth + 1)
-        elif isinstance(value, list):
-            for i, child in enumerate(value[:100]):
-                walk(child, f"{path}[{i}]", depth + 1)
-
-    walk(data)
-    if not hits:
-        try:
-            preview = json.dumps(data, ensure_ascii=False, separators=(",", ":"))
-        except Exception:
-            preview = repr(data)
-        if len(preview) > 2500:
-            preview = preview[:2500] + "..."
-        print(f"STOVE DEBUG [{component_id}] 가격 관련 키 없음. 응답 앞부분: {preview}")
-        return
-
-    for path, keys, preview in hits:
-        print(f"STOVE DEBUG [{component_id}] path={path} keys={','.join(keys)} object={preview}")
-
-
 def stove_api_headers():
     caller_uuid = str(uuid.uuid4())
     return {
@@ -187,7 +134,6 @@ def stove_api_headers():
 
 
 def get_stove_price_components(product_no: int, headers):
-    """INDIE_PRODUCT 페이지 정의에서 가격/구매 관련 component_id를 자동으로 찾는다."""
     api_url = "https://api.onstove.com/store/v1.0/components"
     params = {
         "search_type": "PAGE_ID",
@@ -199,7 +145,6 @@ def get_stove_price_components(product_no: int, headers):
     r.raise_for_status()
     data = r.json()
 
-    # 응답 최상위 구조가 바뀌더라도 components 배열을 재귀적으로 찾는다.
     components = None
 
     def find_components(value):
@@ -233,18 +178,7 @@ def get_stove_price_components(product_no: int, headers):
                 selected.append(component_id)
 
     if not selected:
-        available = sorted(
-            {
-                str(c.get("component_type"))
-                for c in components
-                if isinstance(c, dict) and c.get("component_type")
-            }
-        )
-        raise ValueError(
-            "STOVE 페이지 정의에서 가격 관련 컴포넌트를 찾지 못했습니다. "
-            f"available_types={','.join(available)}"
-        )
-
+        raise ValueError("STOVE 페이지 정의에서 가격 관련 컴포넌트를 찾지 못했습니다.")
     return selected
 
 
@@ -273,7 +207,6 @@ def parse_stove(url: str):
         r = requests.get(api_url, headers=headers, params=params, timeout=30)
         r.raise_for_status()
         data = r.json()
-        debug_stove_response(data, component_id)
         product = find_stove_price_object(data, product_no)
         if product:
             print(f"STOVE 가격 컴포넌트 사용: {component_id}")
@@ -290,15 +223,15 @@ def parse_stove(url: str):
     if currency != "KRW":
         raise ValueError(f"STOVE KR 상품 API가 KRW가 아닌 통화({currency or '없음'})를 반환했습니다.")
 
-    sales_price = amount.get("salesPrice")
-    original_price = amount.get("originalPrice")
-    discount_rate = amount.get("discountRate")
+    sales_price = get_any(amount, "sales_price", "salesPrice", "sale_price", "salePrice")
+    original_price = get_any(amount, "original_price", "originalPrice")
+    discount_rate = get_any(amount, "discount_rate", "discountRate")
     if sales_price is None:
         sales_price = original_price
     if sales_price is None:
         raise ValueError("STOVE KR 상품 API 응답에 판매가가 없습니다.")
 
-    title = product.get("productName")
+    title = get_any(product, "product_name", "productName")
     title_obj = product.get("title")
     if not title and isinstance(title_obj, dict):
         title = title_obj.get("text")
@@ -309,9 +242,10 @@ def parse_stove(url: str):
         except Exception:
             title = f"STOVE 상품 {product_no}"
 
-    price = f"₩{int(sales_price):,}"
-    if discount_rate not in (None, 0, "0"):
-        price += f" (-{discount_rate}%)"
+    price = f"₩{int(float(sales_price)):,}"
+    if discount_rate not in (None, 0, 0.0, "0", "0.0"):
+        rate = int(float(discount_rate))
+        price += f" (-{rate}%)"
     return title, price, "한국"
 
 
@@ -326,7 +260,6 @@ def steam_appdetails(appid: str, cc: str, lang: str):
 
 
 def steam_major_price(po):
-    # Steam final 값은 1/100 단위 정수다. JPY/KRW도 100으로 나눠 표시해야 한다.
     return int(po.get("final", 0)) // 100
 
 

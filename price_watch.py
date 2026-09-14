@@ -22,7 +22,13 @@ HEADERS = {
     "Accept-Language": "ko-KR,ko;q=0.9,en;q=0.8",
 }
 
+STOVE_HEADERS = {
+    **HEADERS,
+    "Cookie": "LOCALE=KO; NNTO=KR; PRM=KO; REGULATION=KOREA; TZ=Asia%2FSeoul; TZ_OFFSET=540; dvc=pc",
+}
+
 PRICE_RE = re.compile(r"(?:₩|￦|¥|￥|\$|€|£)\s?[0-9][0-9,.]*|[0-9][0-9,.]*\s?(?:원|엔)")
+STEAM_APP_RE = re.compile(r"store\.steampowered\.com/app/(\d+)")
 
 
 def clean_text(s: str) -> str:
@@ -45,7 +51,9 @@ def read_urls():
 
 
 def fetch(url: str):
-    r = requests.get(url, headers=HEADERS, timeout=30)
+    host = urlparse(url).netloc.lower()
+    headers = STOVE_HEADERS if host.endswith("store.onstove.com") else HEADERS
+    r = requests.get(url, headers=headers, timeout=30)
     r.raise_for_status()
     return r.text
 
@@ -68,30 +76,56 @@ def parse_title(soup: BeautifulSoup):
 def parse_stove(url: str, soup: BeautifulSoup, text: str):
     title = parse_title(soup)
 
-    # STOVE 컬렉션/상품 페이지는 본문에 '판매 가격(할인 포함)' 뒤로 최종 판매가가 표시됨.
     marker = "판매 가격(할인 포함)"
     idx = text.find(marker)
     if idx >= 0:
         tail = text[idx + len(marker): idx + len(marker) + 120]
         m = PRICE_RE.search(tail)
         if m:
-            return title, clean_text(m.group(0))
+            price = clean_text(m.group(0))
+            if not ("₩" in price or "￦" in price or price.endswith("원")):
+                raise ValueError(f"STOVE가 한국 원화가 아닌 가격({price})을 반환했습니다. 한국 국가 쿠키 적용 여부를 확인해야 합니다.")
+            return title, price
 
-    # 일반 구매 영역 fallback: '구매' 이후 짧은 구간에서 마지막 가격을 최종가로 취급.
     buy_idx = text.find("구매")
     if buy_idx >= 0:
         section = text[buy_idx: buy_idx + 800]
         prices = PRICE_RE.findall(section)
-        if prices:
-            return title, clean_text(prices[-1])
+        krw_prices = [p for p in prices if ("₩" in p or "￦" in p or p.endswith("원"))]
+        if krw_prices:
+            return title, clean_text(krw_prices[-1])
 
-    raise ValueError("STOVE 페이지에서 판매 가격을 찾지 못했습니다.")
+    raise ValueError("STOVE 페이지에서 한국 원화 판매 가격을 찾지 못했습니다.")
+
+
+def parse_steam(url: str):
+    m = STEAM_APP_RE.search(url)
+    if not m:
+        raise ValueError("Steam URL에서 App ID를 찾지 못했습니다.")
+    appid = m.group(1)
+    api_url = f"https://store.steampowered.com/api/appdetails?appids={appid}&cc=kr&l=koreana"
+    r = requests.get(api_url, headers=HEADERS, timeout=30)
+    r.raise_for_status()
+    data = r.json().get(appid, {})
+    if not data.get("success"):
+        raise ValueError("Steam Store API에서 상품 정보를 받지 못했습니다.")
+    info = data.get("data", {})
+    title = info.get("name") or f"Steam App {appid}"
+    if info.get("is_free"):
+        return title, "₩0"
+    po = info.get("price_overview")
+    if not po:
+        raise ValueError("Steam 상품에 현재 판매 가격 정보가 없습니다.")
+    currency = po.get("currency")
+    if currency != "KRW":
+        raise ValueError(f"Steam API가 KRW가 아닌 통화({currency})를 반환했습니다.")
+    final = int(po.get("final", 0))
+    return title, f"₩{final:,}"
 
 
 def parse_generic(url: str, soup: BeautifulSoup, text: str):
     title = parse_title(soup)
 
-    # JSON-LD Product/Offer 우선
     for tag in soup.find_all("script", attrs={"type": "application/ld+json"}):
         raw = tag.string or tag.get_text()
         if not raw:
@@ -113,7 +147,6 @@ def parse_generic(url: str, soup: BeautifulSoup, text: str):
             elif isinstance(obj, list):
                 stack.extend(obj)
 
-    # meta/itemprop 가격 fallback
     for attrs in (
         {"itemprop": "price"},
         {"property": "product:price:amount"},
@@ -127,7 +160,6 @@ def parse_generic(url: str, soup: BeautifulSoup, text: str):
                 currency = cur["content"]
             return title, f"{currency} {tag['content']}".strip()
 
-    # 최후 fallback: 페이지에서 보이는 첫 통화 가격
     m = PRICE_RE.search(text)
     if m:
         return title, clean_text(m.group(0))
@@ -135,10 +167,16 @@ def parse_generic(url: str, soup: BeautifulSoup, text: str):
     raise ValueError("가격을 자동 추출하지 못했습니다. 이 사이트용 파서 추가가 필요합니다.")
 
 
-def parse_page(url: str, html: str):
+def parse_page(url: str, html: str | None = None):
+    host = urlparse(url).netloc.lower()
+
+    if host.endswith("store.steampowered.com"):
+        return parse_steam(url)
+
+    if html is None:
+        html = fetch(url)
     soup = BeautifulSoup(html, "html.parser")
     text = clean_text(soup.get_text(" ", strip=True))
-    host = urlparse(url).netloc.lower()
 
     if host.endswith("store.onstove.com"):
         return parse_stove(url, soup, text)
@@ -190,8 +228,13 @@ def main():
 
     for url in urls:
         try:
-            html = fetch(url)
-            title, price = parse_page(url, html)
+            host = urlparse(url).netloc.lower()
+            if host.endswith("store.steampowered.com"):
+                title, price = parse_page(url)
+            else:
+                html = fetch(url)
+                title, price = parse_page(url, html)
+
             prev = old_items.get(url)
 
             new_items[url] = {
@@ -211,7 +254,6 @@ def main():
         except Exception as e:
             failures.append(f"{url}: {e}")
             print(f"ERROR: {url}: {e}", file=sys.stderr)
-            # 일시 오류로 상태를 잃지 않도록 기존 값을 유지
             if url in old_items:
                 new_items[url] = old_items[url]
         time.sleep(0.5)

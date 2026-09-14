@@ -2,8 +2,10 @@ name: Naver Series & Price Watch
 
 on:
   schedule:
-    # 한국시간 매일 오전 6시 = UTC 21:00 (전날)
+    # 한국시간 매일 오전 6시 = UTC 21:00 (전날): 네이버 시리즈 체크
     - cron: "0 21 * * *"
+    # 한국시간 매일 오전 6시 1분 = UTC 21:01 (전날): 가격 체크
+    - cron: "1 21 * * *"
   workflow_dispatch:
     inputs:
       send_test:
@@ -52,6 +54,7 @@ jobs:
             -H 'Content-Type: application/json' \
             -d '{"content":"✅ 네이버 시리즈 알림 테스트 성공!"}' \
             "$SERIES_DISCORD_WEBHOOK"
+          sleep 5
           curl -fsS \
             -H 'Content-Type: application/json' \
             -d '{"content":"✅ 가격 추적 알림 테스트 성공!"}' \
@@ -73,11 +76,13 @@ jobs:
         run: python manage_price_urls.py
 
       - name: Check Naver Series
+        if: ${{ github.event_name == 'workflow_dispatch' || github.event.schedule == '0 21 * * *' }}
         env:
           DISCORD_WEBHOOK: ${{ secrets.SERIES_DISCORD_WEBHOOK }}
         run: python check.py
 
       - name: Check prices
+        if: ${{ github.event_name == 'workflow_dispatch' || github.event.schedule == '1 21 * * *' }}
         env:
           DISCORD_WEBHOOK: ${{ secrets.PRICE_DISCORD_WEBHOOK }}
           SEND_CURRENT_REPORT: "0"

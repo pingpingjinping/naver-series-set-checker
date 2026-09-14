@@ -6,6 +6,8 @@ on:
     - cron: "0 21 * * *"
     # 한국시간 매일 오전 6시 1분 = UTC 21:01 (전날): 가격 체크
     - cron: "1 21 * * *"
+    # 한국시간 매일 오전 6시 2분 = UTC 21:02 (전날): 리디 만화 캘린더 체크
+    - cron: "2 21 * * *"
   workflow_dispatch:
     inputs:
       send_test:
@@ -88,6 +90,12 @@ jobs:
           SEND_CURRENT_REPORT: "0"
         run: python price_watch.py
 
+      - name: Check Ridi comic calendar
+        if: ${{ github.event_name == 'workflow_dispatch' || github.event.schedule == '2 21 * * *' }}
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.SERIES_DISCORD_WEBHOOK }}
+        run: python ridi_calendar_watch.py
+
       - name: Send numbered current price list
         if: ${{ always() && github.event_name == 'workflow_dispatch' && inputs.send_current_prices }}
         env:
@@ -97,13 +105,13 @@ jobs:
       - name: Save state and URL list
         if: ${{ always() }}
         run: |
-          if git diff --quiet -- state.json price_state.json price_urls.txt; then
+          if git diff --quiet -- state.json price_state.json price_urls.txt ridi_calendar_state.json; then
             echo "상태/URL 파일 변경 없음"
             exit 0
           fi
 
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add state.json price_state.json price_urls.txt
+          git add state.json price_state.json price_urls.txt ridi_calendar_state.json
           git commit -m "chore: update watch state and price URLs"
           git push

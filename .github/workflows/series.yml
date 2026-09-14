@@ -2,7 +2,10 @@ name: Scheduled Naver Series Watch
 
 on:
   schedule:
-    - cron: "0 22 * * *" # 07:00 KST (temporary test)
+    # Temporary test: 07:37 KST = 22:37 UTC (previous day)
+    # GitHub warns schedules near the start of an hour can be delayed or dropped.
+    - cron: "37 22 * * *"
+  workflow_dispatch:
 
 permissions:
   contents: write

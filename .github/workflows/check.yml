@@ -12,7 +12,7 @@ on:
         default: false
         type: boolean
       send_current_prices:
-        description: "현재 가격 목록 보내기 (번호 포함)"
+        description: "현재 가격 목록 보내기 (삭제 번호 포함)"
         required: false
         default: false
         type: boolean
@@ -75,10 +75,17 @@ jobs:
       - name: Check prices
         env:
           DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
-          SEND_CURRENT_REPORT: ${{ github.event_name == 'workflow_dispatch' && inputs.send_current_prices }}
+          SEND_CURRENT_REPORT: "0"
         run: python price_watch.py
 
+      - name: Send numbered current price list
+        if: ${{ always() && github.event_name == 'workflow_dispatch' && inputs.send_current_prices }}
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+        run: python numbered_price_report.py
+
       - name: Save state and URL list
+        if: ${{ always() }}
         run: |
           if git diff --quiet -- state.json price_state.json price_urls.txt; then
             echo "상태/URL 파일 변경 없음"

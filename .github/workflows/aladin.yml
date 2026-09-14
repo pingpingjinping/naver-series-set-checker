@@ -1,8 +1,7 @@
-name: Scheduled Aladin eBook Comic Calendar Watch
+name: WalnutPi Aladin eBook Comic Calendar Watch
 
 on:
-  schedule:
-    - cron: "3 21 * * *" # 06:03 KST
+  workflow_dispatch:
 
 permissions:
   contents: write

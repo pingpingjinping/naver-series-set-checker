@@ -1,8 +1,7 @@
-name: Scheduled Price Watch
+name: WalnutPi Price Watch
 
 on:
-  schedule:
-    - cron: "1 21 * * *" # 06:01 KST
+  workflow_dispatch:
 
 permissions:
   contents: write

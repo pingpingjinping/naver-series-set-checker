@@ -14,6 +14,7 @@ URLS_FILE = Path("price_urls.txt")
 STATE_FILE = Path("price_state.json")
 DISCORD_WEBHOOK = os.environ.get("DISCORD_WEBHOOK", "").strip()
 SEND_CURRENT_REPORT = os.environ.get("SEND_CURRENT_REPORT", "").lower() in {"1", "true", "yes", "on"}
+ACTIONS_URL = "https://github.com/pingpingjinping/naver-series-set-checker/actions/workflows/check.yml"
 
 HEADERS = {
     "User-Agent": (
@@ -353,15 +354,16 @@ def post_discord(content: str):
     r.raise_for_status()
 
 
-def send_discord(title: str, old_price: str, new_price: str, url: str, region: str = ""):
+def send_discord(index: int, title: str, old_price: str, new_price: str, url: str, region: str = ""):
     region_line = f"지역: **{region}**\n" if region else ""
     post_discord(
         "💰 **가격 변경 감지**\n\n"
-        f"**{title}**\n"
+        f"**#{index} · {title}**\n"
         f"{region_line}"
         f"이전: `{old_price}`\n"
         f"현재: `{new_price}`\n"
-        f"<{url}>"
+        f"<{url}>\n\n"
+        f"⚙️ 가격 추적 관리: <{ACTIONS_URL}>"
     )
 
 
@@ -369,13 +371,16 @@ def send_current_report(items, failures):
     lines = ["📋 **현재 가격 목록**", ""]
     for item in items:
         region = f" · {item['region']}" if item.get("region") else ""
-        lines.append(f"**{item['title']}**")
+        lines.append(f"**#{item['index']} · {item['title']}**")
         lines.append(f"현재: `{item['price']}`{region}")
         lines.append(f"<{item['url']}>")
         lines.append("")
     if failures:
         lines.append("⚠️ **조회 실패**")
         lines.extend(f"- {x}" for x in failures)
+        lines.append("")
+
+    lines.append(f"⚙️ **URL 추가/삭제:** <{ACTIONS_URL}>")
 
     current = ""
     chunks = []
@@ -406,23 +411,23 @@ def main():
         save_state({"items": {}})
         return
 
-    for url in urls:
+    for index, url in enumerate(urls, start=1):
         try:
             title, price, region = parse_page(url)
             prev = old_items.get(url)
-            item = {"title": title, "price": price, "region": region, "url": url}
-            new_items[url] = item
+            item = {"index": index, "title": title, "price": price, "region": region, "url": url}
+            new_items[url] = {"title": title, "price": price, "region": region, "url": url}
             report_items.append(item)
 
             if prev is None:
-                print(f"기준점 등록: {title} = {price} ({region})")
+                print(f"기준점 등록: #{index} {title} = {price} ({region})")
             elif prev.get("price") != price or prev.get("region", "") != region:
-                print(f"가격/지역 변경: {title}: {prev.get('price')} -> {price} [{region}]")
-                send_discord(title, prev.get("price", "알 수 없음"), price, url, region)
+                print(f"가격/지역 변경: #{index} {title}: {prev.get('price')} -> {price} [{region}]")
+                send_discord(index, title, prev.get("price", "알 수 없음"), price, url, region)
             else:
-                print(f"변경 없음: {title} = {price} ({region})")
+                print(f"변경 없음: #{index} {title} = {price} ({region})")
         except Exception as e:
-            msg = f"{url}: {e}"
+            msg = f"#{index} {url}: {e}"
             failures.append(msg)
             print(f"ERROR: {msg}", file=sys.stderr)
             if url in old_items:

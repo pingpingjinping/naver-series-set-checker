@@ -3,6 +3,7 @@ import os
 import re
 import sys
 import time
+import uuid
 from pathlib import Path
 from urllib.parse import urlparse
 
@@ -23,13 +24,10 @@ HEADERS = {
     "Accept-Language": "ko-KR,ko;q=0.9,en;q=0.8",
 }
 
-STOVE_HEADERS = {
-    **HEADERS,
-    "Cookie": "LOCALE=KO; NNTO=KR; PRM=KO; REGULATION=KOREA; TZ=Asia%2FSeoul; TZ_OFFSET=540; dvc=pc",
-}
-
+STOVE_PRODUCT_RE = re.compile(r"store\.onstove\.com/(?:[a-z]{2}/)?games/(\d+)", re.I)
+STEAM_APP_RE = re.compile(r"store\.steampowered\.com/app/(\d+)", re.I)
 PRICE_RE = re.compile(r"(?:₩|￦|¥|￥|\$|€|£)\s?[0-9][0-9,.]*|[0-9][0-9,.]*\s?(?:원|엔)")
-STEAM_APP_RE = re.compile(r"store\.steampowered\.com/app/(\d+)")
+STOVE_COMPONENT_ID = "645adaa720577c7c9ae0d807"
 
 
 def clean_text(s: str) -> str:
@@ -52,9 +50,7 @@ def read_urls():
 
 
 def fetch(url: str):
-    host = urlparse(url).netloc.lower()
-    headers = STOVE_HEADERS if host.endswith("store.onstove.com") else HEADERS
-    r = requests.get(url, headers=headers, timeout=30)
+    r = requests.get(url, headers=HEADERS, timeout=30)
     r.raise_for_status()
     return r.text
 
@@ -66,43 +62,95 @@ def parse_title(soup: BeautifulSoup):
     h1 = soup.find("h1")
     if h1:
         return clean_text(h1.get_text(" ", strip=True))
-    h2 = soup.find("h2")
-    if h2:
-        return clean_text(h2.get_text(" ", strip=True))
     if soup.title:
         return clean_text(soup.title.get_text(" ", strip=True))
     return "가격 추적 상품"
 
 
-def parse_stove(url: str, soup: BeautifulSoup, text: str):
-    title = parse_title(soup)
-    marker = "판매 가격(할인 포함)"
-    idx = text.find(marker)
-    if idx >= 0:
-        tail = text[idx + len(marker): idx + len(marker) + 120]
-        m = PRICE_RE.search(tail)
-        if m:
-            price = clean_text(m.group(0))
-            if "₩" in price or "￦" in price or price.endswith("원"):
-                return title, price, "한국"
-            # GitHub Actions 러너에서는 STOVE가 국가 쿠키를 줘도 USD를 반환하는 경우가 있음.
-            # 이때 조회 자체를 실패시키지 않고 글로벌 표시 가격을 추적한다.
-            if "$" in price:
-                return title, price, "글로벌(USD)"
-            return title, price, "STOVE"
+def find_stove_product(obj, product_no: int):
+    if isinstance(obj, dict):
+        pn = obj.get("productNo")
+        amount = obj.get("amount")
+        if str(pn) == str(product_no) and isinstance(amount, dict):
+            return obj
+        for value in obj.values():
+            found = find_stove_product(value, product_no)
+            if found:
+                return found
+    elif isinstance(obj, list):
+        for value in obj:
+            found = find_stove_product(value, product_no)
+            if found:
+                return found
+    return None
 
-    buy_idx = text.find("구매")
-    if buy_idx >= 0:
-        section = text[buy_idx: buy_idx + 800]
-        prices = PRICE_RE.findall(section)
-        krw_prices = [p for p in prices if ("₩" in p or "￦" in p or p.endswith("원"))]
-        if krw_prices:
-            return title, clean_text(krw_prices[-1]), "한국"
-        usd_prices = [p for p in prices if "$" in p]
-        if usd_prices:
-            return title, clean_text(usd_prices[-1]), "글로벌(USD)"
 
-    raise ValueError("STOVE 페이지에서 판매 가격을 찾지 못했습니다.")
+def parse_stove(url: str):
+    m = STOVE_PRODUCT_RE.search(url)
+    if not m:
+        raise ValueError("STOVE URL에서 product_no를 찾지 못했습니다.")
+    product_no = int(m.group(1))
+
+    api_url = "https://api.onstove.com/store/v1.0/components/groups/product-merge"
+    caller_uuid = str(uuid.uuid4())
+    headers = {
+        **HEADERS,
+        "Accept": "application/json, text/plain, */*",
+        "Origin": "https://store.onstove.com",
+        "Referer": "https://store.onstove.com/",
+        "caller-detail": caller_uuid,
+        "caller-id": "indie-web-store",
+        "x-client-lang": "ko",
+        "x-device-type": "P01",
+        "x-lang": "ko",
+        "x-nation": "KR",
+        "x-timezone": "Asia/Seoul",
+        "x-utc-offset": "540",
+        "x-uuid": caller_uuid,
+    }
+    params = {
+        "component_ids": STOVE_COMPONENT_ID,
+        "product_no": str(product_no),
+        "preview": "",
+        "timestemp": str(int(time.time() * 1000)),
+    }
+
+    r = requests.get(api_url, headers=headers, params=params, timeout=30)
+    r.raise_for_status()
+    data = r.json()
+
+    product = find_stove_product(data, product_no)
+    if not product:
+        raise ValueError("STOVE KR 상품 API 응답에서 해당 productNo를 찾지 못했습니다.")
+
+    amount = product.get("amount") or {}
+    currency = str(amount.get("currency") or "").upper()
+    if currency != "KRW":
+        raise ValueError(f"STOVE KR 상품 API가 KRW가 아닌 통화({currency or '없음'})를 반환했습니다.")
+
+    sales_price = amount.get("salesPrice")
+    original_price = amount.get("originalPrice")
+    discount_rate = amount.get("discountRate")
+    if sales_price is None:
+        sales_price = original_price
+    if sales_price is None:
+        raise ValueError("STOVE KR 상품 API 응답에 판매가가 없습니다.")
+
+    title = (
+        product.get("productName")
+        or (product.get("title") or {}).get("text") if isinstance(product.get("title"), dict) else None
+    )
+    if not title:
+        try:
+            html = fetch(url)
+            title = parse_title(BeautifulSoup(html, "html.parser"))
+        except Exception:
+            title = f"STOVE 상품 {product_no}"
+
+    price = f"₩{int(sales_price):,}"
+    if discount_rate not in (None, 0, "0"):
+        price += f" (-{discount_rate}%)"
+    return title, price, "한국"
 
 
 def steam_appdetails(appid: str, cc: str, lang: str):
@@ -115,10 +163,9 @@ def steam_appdetails(appid: str, cc: str, lang: str):
     return data.get("data", {})
 
 
-def steam_minor_to_major(value):
-    # Steam appdetails의 price_overview.final은 통화의 1/100 단위 정수로 내려온다.
-    # JPY/KRW도 예: 528000 -> 5,280 / 4500000 -> 45,000 으로 처리해야 한다.
-    return int(value or 0) // 100
+def steam_major_price(po):
+    # Steam final 값은 1/100 단위 정수다. JPY/KRW도 100으로 나눠 표시해야 한다.
+    return int(po.get("final", 0)) // 100
 
 
 def parse_steam(url: str):
@@ -134,8 +181,7 @@ def parse_steam(url: str):
             return title, "₩0", "한국"
         po = info.get("price_overview")
         if po and po.get("currency") == "KRW":
-            final = steam_minor_to_major(po.get("final"))
-            return title, f"₩{final:,}", "한국"
+            return title, f"₩{steam_major_price(po):,}", "한국"
 
     info = steam_appdetails(appid, "jp", "japanese")
     if info:
@@ -144,14 +190,16 @@ def parse_steam(url: str):
             return title, "¥0", "일본"
         po = info.get("price_overview")
         if po and po.get("currency") == "JPY":
-            final = steam_minor_to_major(po.get("final"))
-            return title, f"¥{final:,}", "일본"
+            return title, f"¥{steam_major_price(po):,}", "일본"
 
     raise ValueError("Steam 한국/일본 스토어 모두에서 판매 가격을 찾지 못했습니다.")
 
 
-def parse_generic(url: str, soup: BeautifulSoup, text: str):
+def parse_generic(url: str, html: str):
+    soup = BeautifulSoup(html, "html.parser")
+    text = clean_text(soup.get_text(" ", strip=True))
     title = parse_title(soup)
+
     for tag in soup.find_all("script", attrs={"type": "application/ld+json"}):
         raw = tag.string or tag.get_text()
         if not raw:
@@ -172,32 +220,19 @@ def parse_generic(url: str, soup: BeautifulSoup, text: str):
             elif isinstance(obj, list):
                 stack.extend(obj)
 
-    for attrs in ({"itemprop": "price"}, {"property": "product:price:amount"}, {"name": "price"}):
-        tag = soup.find("meta", attrs=attrs)
-        if tag and tag.get("content"):
-            currency = ""
-            cur = soup.find("meta", attrs={"itemprop": "priceCurrency"})
-            if cur and cur.get("content"):
-                currency = cur["content"]
-            return title, f"{currency} {tag['content']}".strip(), ""
-
     m = PRICE_RE.search(text)
     if m:
         return title, clean_text(m.group(0)), ""
     raise ValueError("가격을 자동 추출하지 못했습니다. 이 사이트용 파서 추가가 필요합니다.")
 
 
-def parse_page(url: str, html: str | None = None):
+def parse_page(url: str):
     host = urlparse(url).netloc.lower()
     if host.endswith("store.steampowered.com"):
         return parse_steam(url)
-    if html is None:
-        html = fetch(url)
-    soup = BeautifulSoup(html, "html.parser")
-    text = clean_text(soup.get_text(" ", strip=True))
     if host.endswith("store.onstove.com"):
-        return parse_stove(url, soup, text)
-    return parse_generic(url, soup, text)
+        return parse_stove(url)
+    return parse_generic(url, fetch(url))
 
 
 def load_state():
@@ -247,8 +282,8 @@ def send_current_report(items, failures):
         lines.append("⚠️ **조회 실패**")
         lines.extend(f"- {x}" for x in failures)
 
-    chunks = []
     current = ""
+    chunks = []
     for line in lines:
         candidate = current + line + "\n"
         if len(candidate) > 1900 and current:
@@ -278,29 +313,19 @@ def main():
 
     for url in urls:
         try:
-            host = urlparse(url).netloc.lower()
-            if host.endswith("store.steampowered.com"):
-                title, price, region = parse_page(url)
-            else:
-                html = fetch(url)
-                title, price, region = parse_page(url, html)
-
+            title, price, region = parse_page(url)
             prev = old_items.get(url)
             item = {"title": title, "price": price, "region": region, "url": url}
             new_items[url] = item
             report_items.append(item)
 
             if prev is None:
-                suffix = f" ({region})" if region else ""
-                print(f"기준점 등록: {title} = {price}{suffix}")
+                print(f"기준점 등록: {title} = {price} ({region})")
             elif prev.get("price") != price or prev.get("region", "") != region:
-                old_region = prev.get("region", "")
-                print(f"가격/지역 변경: {title}: {prev.get('price')} [{old_region}] -> {price} [{region}]")
+                print(f"가격/지역 변경: {title}: {prev.get('price')} -> {price} [{region}]")
                 send_discord(title, prev.get("price", "알 수 없음"), price, url, region)
             else:
-                suffix = f" ({region})" if region else ""
-                print(f"변경 없음: {title} = {price}{suffix}")
-
+                print(f"변경 없음: {title} = {price} ({region})")
         except Exception as e:
             msg = f"{url}: {e}"
             failures.append(msg)

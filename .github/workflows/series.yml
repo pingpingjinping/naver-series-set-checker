@@ -2,7 +2,7 @@ name: Scheduled Naver Series Watch
 
 on:
   schedule:
-    - cron: "0 21 * * *" # 06:00 KST
+    - cron: "0 22 * * *" # 07:00 KST (temporary test)
 
 permissions:
   contents: write

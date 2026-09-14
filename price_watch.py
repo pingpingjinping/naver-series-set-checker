@@ -12,6 +12,7 @@ from bs4 import BeautifulSoup
 URLS_FILE = Path("price_urls.txt")
 STATE_FILE = Path("price_state.json")
 DISCORD_WEBHOOK = os.environ.get("DISCORD_WEBHOOK", "").strip()
+SEND_CURRENT_REPORT = os.environ.get("SEND_CURRENT_REPORT", "").lower() in {"1", "true", "yes", "on"}
 
 HEADERS = {
     "User-Agent": (
@@ -75,7 +76,6 @@ def parse_title(soup: BeautifulSoup):
 
 def parse_stove(url: str, soup: BeautifulSoup, text: str):
     title = parse_title(soup)
-
     marker = "판매 가격(할인 포함)"
     idx = text.find(marker)
     if idx >= 0:
@@ -84,7 +84,7 @@ def parse_stove(url: str, soup: BeautifulSoup, text: str):
         if m:
             price = clean_text(m.group(0))
             if not ("₩" in price or "￦" in price or price.endswith("원")):
-                raise ValueError(f"STOVE가 한국 원화가 아닌 가격({price})을 반환했습니다. 한국 국가 쿠키 적용 여부를 확인해야 합니다.")
+                raise ValueError(f"STOVE가 한국 원화가 아닌 가격({price})을 반환했습니다.")
             return title, price, "한국"
 
     buy_idx = text.find("구매")
@@ -114,7 +114,6 @@ def parse_steam(url: str):
         raise ValueError("Steam URL에서 App ID를 찾지 못했습니다.")
     appid = m.group(1)
 
-    # 1순위: 한국 스토어
     info = steam_appdetails(appid, "kr", "koreana")
     if info:
         title = info.get("name") or f"Steam App {appid}"
@@ -122,10 +121,8 @@ def parse_steam(url: str):
             return title, "₩0", "한국"
         po = info.get("price_overview")
         if po and po.get("currency") == "KRW":
-            final = int(po.get("final", 0))
-            return title, f"₩{final:,}", "한국"
+            return title, f"₩{int(po.get('final', 0)):,}", "한국"
 
-    # 2순위: 한국 미판매/지역락이면 일본 스토어
     info = steam_appdetails(appid, "jp", "japanese")
     if info:
         title = info.get("name") or f"Steam App {appid}"
@@ -133,15 +130,13 @@ def parse_steam(url: str):
             return title, "¥0", "일본"
         po = info.get("price_overview")
         if po and po.get("currency") == "JPY":
-            final = int(po.get("final", 0))
-            return title, f"¥{final:,}", "일본"
+            return title, f"¥{int(po.get('final', 0)):,}", "일본"
 
     raise ValueError("Steam 한국/일본 스토어 모두에서 판매 가격을 찾지 못했습니다.")
 
 
 def parse_generic(url: str, soup: BeautifulSoup, text: str):
     title = parse_title(soup)
-
     for tag in soup.find_all("script", attrs={"type": "application/ld+json"}):
         raw = tag.string or tag.get_text()
         if not raw:
@@ -150,7 +145,6 @@ def parse_generic(url: str, soup: BeautifulSoup, text: str):
             data = json.loads(raw)
         except Exception:
             continue
-
         stack = data if isinstance(data, list) else [data]
         while stack:
             obj = stack.pop()
@@ -163,11 +157,7 @@ def parse_generic(url: str, soup: BeautifulSoup, text: str):
             elif isinstance(obj, list):
                 stack.extend(obj)
 
-    for attrs in (
-        {"itemprop": "price"},
-        {"property": "product:price:amount"},
-        {"name": "price"},
-    ):
+    for attrs in ({"itemprop": "price"}, {"property": "product:price:amount"}, {"name": "price"}):
         tag = soup.find("meta", attrs=attrs)
         if tag and tag.get("content"):
             currency = ""
@@ -179,21 +169,17 @@ def parse_generic(url: str, soup: BeautifulSoup, text: str):
     m = PRICE_RE.search(text)
     if m:
         return title, clean_text(m.group(0)), ""
-
     raise ValueError("가격을 자동 추출하지 못했습니다. 이 사이트용 파서 추가가 필요합니다.")
 
 
 def parse_page(url: str, html: str | None = None):
     host = urlparse(url).netloc.lower()
-
     if host.endswith("store.steampowered.com"):
         return parse_steam(url)
-
     if html is None:
         html = fetch(url)
     soup = BeautifulSoup(html, "html.parser")
     text = clean_text(soup.get_text(" ", strip=True))
-
     if host.endswith("store.onstove.com"):
         return parse_stove(url, soup, text)
     return parse_generic(url, soup, text)
@@ -215,12 +201,16 @@ def save_state(state):
     STATE_FILE.write_text(json.dumps(state, ensure_ascii=False, indent=2), encoding="utf-8")
 
 
-def send_discord(title: str, old_price: str, new_price: str, url: str, region: str = ""):
+def post_discord(content: str):
     if not DISCORD_WEBHOOK:
         raise RuntimeError("DISCORD_WEBHOOK secret이 설정되어 있지 않습니다.")
+    r = requests.post(DISCORD_WEBHOOK, json={"content": content}, timeout=30)
+    r.raise_for_status()
 
+
+def send_discord(title: str, old_price: str, new_price: str, url: str, region: str = ""):
     region_line = f"지역: **{region}**\n" if region else ""
-    content = (
+    post_discord(
         "💰 **가격 변경 감지**\n\n"
         f"**{title}**\n"
         f"{region_line}"
@@ -228,8 +218,34 @@ def send_discord(title: str, old_price: str, new_price: str, url: str, region: s
         f"현재: `{new_price}`\n"
         f"<{url}>"
     )
-    r = requests.post(DISCORD_WEBHOOK, json={"content": content}, timeout=30)
-    r.raise_for_status()
+
+
+def send_current_report(items, failures):
+    lines = ["📋 **현재 가격 목록**", ""]
+    for item in items:
+        region = f" · {item['region']}" if item.get("region") else ""
+        lines.append(f"**{item['title']}**")
+        lines.append(f"현재: `{item['price']}`{region}")
+        lines.append(f"<{item['url']}>")
+        lines.append("")
+    if failures:
+        lines.append("⚠️ **조회 실패**")
+        lines.extend(f"- {x}" for x in failures)
+
+    chunks = []
+    current = ""
+    for line in lines:
+        candidate = current + line + "\n"
+        if len(candidate) > 1900 and current:
+            chunks.append(current.rstrip())
+            current = line + "\n"
+        else:
+            current = candidate
+    if current.strip():
+        chunks.append(current.rstrip())
+    for chunk in chunks:
+        post_discord(chunk)
+        time.sleep(0.4)
 
 
 def main():
@@ -238,6 +254,7 @@ def main():
     old_items = state.get("items", {})
     new_items = {}
     failures = []
+    report_items = []
 
     if not urls:
         print("price_urls.txt에 추적 URL이 없습니다.")
@@ -254,13 +271,9 @@ def main():
                 title, price, region = parse_page(url, html)
 
             prev = old_items.get(url)
-
-            new_items[url] = {
-                "title": title,
-                "price": price,
-                "region": region,
-                "url": url,
-            }
+            item = {"title": title, "price": price, "region": region, "url": url}
+            new_items[url] = item
+            report_items.append(item)
 
             if prev is None:
                 suffix = f" ({region})" if region else ""
@@ -274,13 +287,18 @@ def main():
                 print(f"변경 없음: {title} = {price}{suffix}")
 
         except Exception as e:
-            failures.append(f"{url}: {e}")
-            print(f"ERROR: {url}: {e}", file=sys.stderr)
+            msg = f"{url}: {e}"
+            failures.append(msg)
+            print(f"ERROR: {msg}", file=sys.stderr)
             if url in old_items:
                 new_items[url] = old_items[url]
         time.sleep(0.5)
 
     save_state({"items": new_items})
+
+    if SEND_CURRENT_REPORT:
+        send_current_report(report_items, failures)
+        print("현재 가격 목록을 Discord로 전송했습니다.")
 
     if failures:
         print("\n일부 URL 확인 실패:", file=sys.stderr)

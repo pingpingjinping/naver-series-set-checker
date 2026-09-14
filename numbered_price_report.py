@@ -8,6 +8,7 @@ import requests
 URLS_FILE = Path("price_urls.txt")
 STATE_FILE = Path("price_state.json")
 DISCORD_WEBHOOK = os.environ.get("DISCORD_WEBHOOK", "").strip()
+ACTIONS_URL = "https://github.com/pingpingjinping/naver-series-set-checker/actions/workflows/check.yml"
 
 
 def read_urls():
@@ -65,6 +66,8 @@ def main():
             lines.append("")
 
     lines.append("삭제할 때 Actions의 `삭제할 번호들`에 예: `1,3` 입력")
+    lines.append("")
+    lines.append(f"⚙️ **URL 추가/삭제:** <{ACTIONS_URL}>")
 
     chunks = []
     current = ""

@@ -1,0 +1,45 @@
+name: Scheduled Price Watch
+
+on:
+  schedule:
+    - cron: "1 21 * * *" # 06:01 KST
+
+permissions:
+  contents: write
+
+concurrency:
+  group: watch-state-writes
+  cancel-in-progress: false
+
+jobs:
+  price:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Check prices
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.PRICE_DISCORD_WEBHOOK }}
+          SEND_CURRENT_REPORT: "0"
+        run: python price_watch.py
+
+      - name: Save state
+        run: |
+          if git diff --quiet -- price_state.json; then
+            echo "price_state.json 변경 없음"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add price_state.json
+          git commit -m "chore: update price state"
+          git push

@@ -1,4 +1,4 @@
-name: Naver Series Set Watch
+name: Naver Series & Price Watch
 
 on:
   schedule:
@@ -34,7 +34,7 @@ jobs:
         run: |
           curl -fsS \
             -H 'Content-Type: application/json' \
-            -d '{"content":"✅ 네이버 시리즈 세트 체크 알림 테스트 성공! GitHub Actions → Discord 연결이 정상입니다."}' \
+            -d '{"content":"✅ 네이버 시리즈 / 가격 체크 알림 테스트 성공! GitHub Actions → Discord 연결이 정상입니다."}' \
             "$DISCORD_WEBHOOK"
 
       - name: Set up Python
@@ -50,15 +50,20 @@ jobs:
           DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
         run: python check.py
 
+      - name: Check prices
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+        run: python price_watch.py
+
       - name: Save state
         run: |
-          if git diff --quiet -- state.json; then
-            echo "state.json 변경 없음"
+          if git diff --quiet -- state.json price_state.json; then
+            echo "상태 파일 변경 없음"
             exit 0
           fi
 
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add state.json
-          git commit -m "chore: update Naver Series watch state"
+          git add state.json price_state.json
+          git commit -m "chore: update watch state"
           git push

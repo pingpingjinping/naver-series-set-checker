@@ -2,6 +2,12 @@ name: WalnutPi Naver Series Watch
 
 on:
   workflow_dispatch:
+    inputs:
+      test_ping:
+        description: "WalnutPi cron trigger test notification"
+        required: false
+        default: false
+        type: boolean
 
 permissions:
   contents: write
@@ -16,6 +22,16 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Send WalnutPi trigger test
+        if: ${{ inputs.test_ping }}
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.SERIES_DISCORD_WEBHOOK }}
+        run: |
+          curl -fsS \
+            -H 'Content-Type: application/json' \
+            -d '{"content":"✅ WalnutPi → GitHub Actions 시리즈 트리거 성공!"}' \
+            "$DISCORD_WEBHOOK"
 
       - name: Set up Python
         uses: actions/setup-python@v5

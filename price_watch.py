@@ -27,7 +27,12 @@ HEADERS = {
 STOVE_PRODUCT_RE = re.compile(r"store\.onstove\.com/(?:[a-z]{2}/)?games/(\d+)", re.I)
 STEAM_APP_RE = re.compile(r"store\.steampowered\.com/app/(\d+)", re.I)
 PRICE_RE = re.compile(r"(?:₩|￦|¥|￥|\$|€|£)\s?[0-9][0-9,.]*|[0-9][0-9,.]*\s?(?:원|엔)")
-STOVE_COMPONENT_ID = "645adaa720577c7c9ae0d807"
+
+# STOVE 상품 상세 페이지에서 실제 가격 데이터를 내려주는 product-merge 컴포넌트 후보.
+STOVE_COMPONENT_IDS = [
+    "65033dd42dab2f65545e5308",
+    "65296c90a3d45d2e28dd41de",
+]
 
 
 def clean_text(s: str) -> str:
@@ -67,22 +72,40 @@ def parse_title(soup: BeautifulSoup):
     return "가격 추적 상품"
 
 
-def find_stove_product(obj, product_no: int):
-    if isinstance(obj, dict):
-        pn = obj.get("productNo")
-        amount = obj.get("amount")
-        if str(pn) == str(product_no) and isinstance(amount, dict):
-            return obj
-        for value in obj.values():
-            found = find_stove_product(value, product_no)
-            if found:
-                return found
-    elif isinstance(obj, list):
-        for value in obj:
-            found = find_stove_product(value, product_no)
-            if found:
-                return found
-    return None
+def find_stove_price_object(obj, product_no: int):
+    """현재 상품의 KRW amount를 우선 찾고, 없으면 KRW 가격 객체를 후보로 반환한다."""
+    fallback = None
+
+    def walk(value):
+        nonlocal fallback
+        if isinstance(value, dict):
+            amount = value.get("amount")
+            if isinstance(amount, dict):
+                currency = str(amount.get("currency") or "").upper()
+                sales_price = amount.get("salesPrice")
+                original_price = amount.get("originalPrice")
+                if currency == "KRW" and (sales_price is not None or original_price is not None):
+                    pn = value.get("productNo")
+                    if str(pn) == str(product_no):
+                        return value
+                    if fallback is None:
+                        fallback = value
+
+            for child in value.values():
+                found = walk(child)
+                if found is not None:
+                    return found
+
+        elif isinstance(value, list):
+            for child in value:
+                found = walk(child)
+                if found is not None:
+                    return found
+
+        return None
+
+    exact = walk(obj)
+    return exact or fallback
 
 
 def parse_stove(url: str):
@@ -108,20 +131,30 @@ def parse_stove(url: str):
         "x-utc-offset": "540",
         "x-uuid": caller_uuid,
     }
-    params = {
-        "component_ids": STOVE_COMPONENT_ID,
-        "product_no": str(product_no),
-        "preview": "",
-        "timestemp": str(int(time.time() * 1000)),
-    }
 
-    r = requests.get(api_url, headers=headers, params=params, timeout=30)
-    r.raise_for_status()
-    data = r.json()
+    product = None
+    tried = []
+    for component_id in STOVE_COMPONENT_IDS:
+        params = {
+            "component_ids": component_id,
+            "product_no": str(product_no),
+            "preview": "",
+            "timestemp": str(int(time.time() * 1000)),
+        }
+        tried.append(component_id)
+        r = requests.get(api_url, headers=headers, params=params, timeout=30)
+        r.raise_for_status()
+        data = r.json()
+        product = find_stove_price_object(data, product_no)
+        if product:
+            print(f"STOVE 가격 컴포넌트 사용: {component_id}")
+            break
 
-    product = find_stove_product(data, product_no)
     if not product:
-        raise ValueError("STOVE KR 상품 API 응답에서 해당 productNo를 찾지 못했습니다.")
+        raise ValueError(
+            "STOVE KR 상품 API에서 KRW 가격 데이터를 찾지 못했습니다. "
+            f"시도한 component_ids={','.join(tried)}"
+        )
 
     amount = product.get("amount") or {}
     currency = str(amount.get("currency") or "").upper()
@@ -136,10 +169,10 @@ def parse_stove(url: str):
     if sales_price is None:
         raise ValueError("STOVE KR 상품 API 응답에 판매가가 없습니다.")
 
-    title = (
-        product.get("productName")
-        or (product.get("title") or {}).get("text") if isinstance(product.get("title"), dict) else None
-    )
+    title = product.get("productName")
+    title_obj = product.get("title")
+    if not title and isinstance(title_obj, dict):
+        title = title_obj.get("text")
     if not title:
         try:
             html = fetch(url)

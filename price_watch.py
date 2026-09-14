@@ -28,10 +28,11 @@ STOVE_PRODUCT_RE = re.compile(r"store\.onstove\.com/(?:[a-z]{2}/)?games/(\d+)", 
 STEAM_APP_RE = re.compile(r"store\.steampowered\.com/app/(\d+)", re.I)
 PRICE_RE = re.compile(r"(?:₩|￦|¥|￥|\$|€|£)\s?[0-9][0-9,.]*|[0-9][0-9,.]*\s?(?:원|엔)")
 
-# STOVE 상품 상세 페이지에서 실제 가격 데이터를 내려주는 product-merge 컴포넌트 후보.
-STOVE_COMPONENT_IDS = [
-    "65033dd42dab2f65545e5308",
-    "65296c90a3d45d2e28dd41de",
+# STOVE 상품 페이지의 가격/구매 관련 컴포넌트 타입.
+# component_id는 하드코딩하지 않고 /components API에서 매번 자동으로 찾는다.
+STOVE_PRICE_COMPONENT_TYPES = [
+    "INDIE_PRODUCT_PRECESSIONS_COMPONENT",  # 구매 가능 상품
+    "INDIE_PRODUCT_PURCHASE_COMPONENT",     # 장바구니/구매
 ]
 
 
@@ -108,15 +109,9 @@ def find_stove_price_object(obj, product_no: int):
     return exact or fallback
 
 
-def parse_stove(url: str):
-    m = STOVE_PRODUCT_RE.search(url)
-    if not m:
-        raise ValueError("STOVE URL에서 product_no를 찾지 못했습니다.")
-    product_no = int(m.group(1))
-
-    api_url = "https://api.onstove.com/store/v1.0/components/groups/product-merge"
+def stove_api_headers():
     caller_uuid = str(uuid.uuid4())
-    headers = {
+    return {
         **HEADERS,
         "Accept": "application/json, text/plain, */*",
         "Origin": "https://store.onstove.com",
@@ -132,9 +127,84 @@ def parse_stove(url: str):
         "x-uuid": caller_uuid,
     }
 
+
+def get_stove_price_components(product_no: int, headers):
+    """INDIE_PRODUCT 페이지 정의에서 가격/구매 관련 component_id를 자동으로 찾는다."""
+    api_url = "https://api.onstove.com/store/v1.0/components"
+    params = {
+        "search_type": "PAGE_ID",
+        "search_value": "INDIE_PRODUCT",
+        "product_no": str(product_no),
+        "timestemp": str(int(time.time() * 1000)),
+    }
+    r = requests.get(api_url, headers=headers, params=params, timeout=30)
+    r.raise_for_status()
+    data = r.json()
+
+    # 응답 최상위 구조가 바뀌더라도 components 배열을 재귀적으로 찾는다.
+    components = None
+
+    def find_components(value):
+        nonlocal components
+        if components is not None:
+            return
+        if isinstance(value, dict):
+            candidate = value.get("components")
+            if isinstance(candidate, list):
+                components = candidate
+                return
+            for child in value.values():
+                find_components(child)
+        elif isinstance(value, list):
+            for child in value:
+                find_components(child)
+
+    find_components(data)
+    if not components:
+        raise ValueError("STOVE /components 응답에서 components 목록을 찾지 못했습니다.")
+
+    selected = []
+    for component_type in STOVE_PRICE_COMPONENT_TYPES:
+        for component in components:
+            if not isinstance(component, dict):
+                continue
+            if component.get("component_type") != component_type:
+                continue
+            component_id = component.get("component_id")
+            if component_id and component_id not in selected:
+                selected.append(component_id)
+
+    if not selected:
+        available = sorted(
+            {
+                str(c.get("component_type"))
+                for c in components
+                if isinstance(c, dict) and c.get("component_type")
+            }
+        )
+        raise ValueError(
+            "STOVE 페이지 정의에서 가격 관련 컴포넌트를 찾지 못했습니다. "
+            f"available_types={','.join(available)}"
+        )
+
+    return selected
+
+
+def parse_stove(url: str):
+    m = STOVE_PRODUCT_RE.search(url)
+    if not m:
+        raise ValueError("STOVE URL에서 product_no를 찾지 못했습니다.")
+    product_no = int(m.group(1))
+
+    headers = stove_api_headers()
+    component_ids = get_stove_price_components(product_no, headers)
+    print(f"STOVE 가격 컴포넌트 자동 탐색: {','.join(component_ids)}")
+
+    api_url = "https://api.onstove.com/store/v1.0/components/groups/product-merge"
     product = None
     tried = []
-    for component_id in STOVE_COMPONENT_IDS:
+
+    for component_id in component_ids:
         params = {
             "component_ids": component_id,
             "product_no": str(product_no),
@@ -153,7 +223,7 @@ def parse_stove(url: str):
     if not product:
         raise ValueError(
             "STOVE KR 상품 API에서 KRW 가격 데이터를 찾지 못했습니다. "
-            f"시도한 component_ids={','.join(tried)}"
+            f"자동 탐색 component_ids={','.join(tried)}"
         )
 
     amount = product.get("amount") or {}

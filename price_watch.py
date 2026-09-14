@@ -109,6 +109,64 @@ def find_stove_price_object(obj, product_no: int):
     return exact or fallback
 
 
+def debug_stove_response(data, component_id: str):
+    """Actions 로그에 가격 관련 키의 실제 JSON 경로/주변 객체를 짧게 출력한다."""
+    if isinstance(data, dict):
+        top = ", ".join(str(k) for k in list(data.keys())[:30])
+        print(f"STOVE DEBUG [{component_id}] top-level keys: {top}")
+    elif isinstance(data, list):
+        print(f"STOVE DEBUG [{component_id}] top-level: list(len={len(data)})")
+    else:
+        print(f"STOVE DEBUG [{component_id}] top-level: {type(data).__name__}")
+
+    interesting = {
+        "salesPrice",
+        "originalPrice",
+        "discountRate",
+        "currency",
+        "productNo",
+        "product_no",
+        "amount",
+        "price",
+        "salePrice",
+        "sale_price",
+    }
+    hits = []
+
+    def walk(value, path="$", depth=0):
+        if len(hits) >= 25 or depth > 20:
+            return
+        if isinstance(value, dict):
+            matched = [k for k in value.keys() if str(k) in interesting]
+            if matched:
+                try:
+                    preview = json.dumps(value, ensure_ascii=False, separators=(",", ":"))
+                except Exception:
+                    preview = repr(value)
+                if len(preview) > 1000:
+                    preview = preview[:1000] + "..."
+                hits.append((path, matched, preview))
+            for key, child in value.items():
+                walk(child, f"{path}.{key}", depth + 1)
+        elif isinstance(value, list):
+            for i, child in enumerate(value[:100]):
+                walk(child, f"{path}[{i}]", depth + 1)
+
+    walk(data)
+    if not hits:
+        try:
+            preview = json.dumps(data, ensure_ascii=False, separators=(",", ":"))
+        except Exception:
+            preview = repr(data)
+        if len(preview) > 2500:
+            preview = preview[:2500] + "..."
+        print(f"STOVE DEBUG [{component_id}] 가격 관련 키 없음. 응답 앞부분: {preview}")
+        return
+
+    for path, keys, preview in hits:
+        print(f"STOVE DEBUG [{component_id}] path={path} keys={','.join(keys)} object={preview}")
+
+
 def stove_api_headers():
     caller_uuid = str(uuid.uuid4())
     return {
@@ -215,6 +273,7 @@ def parse_stove(url: str):
         r = requests.get(api_url, headers=headers, params=params, timeout=30)
         r.raise_for_status()
         data = r.json()
+        debug_stove_response(data, component_id)
         product = find_stove_price_object(data, product_no)
         if product:
             print(f"STOVE 가격 컴포넌트 사용: {component_id}")

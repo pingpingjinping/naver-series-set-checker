@@ -88,28 +88,40 @@ def parse_items(html: str):
 def is_bl_product(item):
     """네이버 시리즈 작품 장르가 BL이면 True.
 
-    제목에 [BL]이 붙은 경우는 바로 판정하고, 그렇지 않은 작품은 상세 페이지의
-    장르 링크(genreCode=107)를 확인한다. 상세 페이지 확인에 실패하면 정상 작품을
-    놓치지 않도록 False로 처리하고 로그만 남긴다.
+    제목에 [BL]이 붙은 경우는 바로 판정한다. 제목에 표시가 없는 작품도 있으므로
+    모바일 상세 페이지의 '장르 -> BL' 작품 메타데이터를 추가로 확인한다.
+    상세 페이지 확인에 실패하면 정상 작품을 놓치지 않도록 False로 처리한다.
     """
     if re.search(r"\[\s*BL\s*\]", item.get("title", ""), re.IGNORECASE):
         return True
 
     try:
-        r = requests.get(item["url"], headers=HEADERS, timeout=30)
+        product_no = item["id"]
+        detail_url = f"https://m.series.naver.com/comic/detail.series?productNo={product_no}"
+        r = requests.get(detail_url, headers=HEADERS, timeout=30)
         r.raise_for_status()
         soup = BeautifulSoup(r.text, "html.parser")
 
-        for a in soup.find_all("a", href=True):
-            href = urljoin(BASE, a["href"])
-            qs = parse_qs(urlparse(href).query)
-            if (qs.get("genreCode") or [""])[0] == "107":
-                return True
+        strings = [clean_text(x) for x in soup.stripped_strings if clean_text(x)]
 
-        # 네이버가 장르 링크 마크업을 바꿔도, 작품 정보 영역에 BL이 명시된 경우를 보조 판정.
-        for node in soup.find_all(["li", "dd", "span"]):
-            if clean_text(node.get_text(" ", strip=True)).upper() == "BL":
-                return True
+        # 모바일 상세 페이지는 작품 정보에 '장르' 다음 값으로 실제 장르를 표시한다.
+        for i, text in enumerate(strings):
+            if text != "장르":
+                continue
+
+            for value in strings[i + 1:i + 4]:
+                normalized = value.strip().upper()
+                if normalized == "BL":
+                    return True
+                if value in {"이용가", "작가", "연재상태", "작품 소개", "가격 정보"}:
+                    break
+            return False
+
+        # 마크업이 조금 바뀌어 문자열이 합쳐진 경우를 위한 보조 판정.
+        visible_text = "\n".join(strings)
+        if re.search(r"(?:^|\n)장르\s*(?:\n\s*)?BL(?:\s|\n|$)", visible_text, re.IGNORECASE):
+            return True
+
     except Exception as e:
         print(f"BL 태그 확인 실패: {item.get('title', item.get('id'))} ({e})")
 

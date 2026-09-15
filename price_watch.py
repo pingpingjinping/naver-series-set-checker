@@ -4,8 +4,10 @@ import re
 import sys
 import time
 import uuid
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from urllib.parse import urlparse
+from zoneinfo import ZoneInfo
 
 import requests
 from bs4 import BeautifulSoup
@@ -15,6 +17,7 @@ STATE_FILE = Path("price_state.json")
 DISCORD_WEBHOOK = os.environ.get("DISCORD_WEBHOOK", "").strip()
 SEND_CURRENT_REPORT = os.environ.get("SEND_CURRENT_REPORT", "").lower() in {"1", "true", "yes", "on"}
 ACTIONS_URL = "https://github.com/pingpingjinping/naver-series-set-checker/actions/workflows/check.yml"
+KST = ZoneInfo("Asia/Seoul")
 
 HEADERS = {
     "User-Agent": (
@@ -78,6 +81,100 @@ def get_any(d, *keys):
         if key in d and d[key] is not None:
             return d[key]
     return None
+
+
+def format_discount_end_datetime(dt: datetime):
+    dt = dt.astimezone(KST)
+    # STOVE collection discounts often use year 2999/3000 as an effectively
+    # open-ended sentinel rather than a meaningful customer-facing deadline.
+    if dt.year >= 2099:
+        return "종료 예정 없음"
+    return dt.strftime("%Y-%m-%d %H:%M KST")
+
+
+def format_discount_end_value(value):
+    if value in (None, "", 0, "0"):
+        return ""
+
+    try:
+        if isinstance(value, (int, float)) or (isinstance(value, str) and re.fullmatch(r"\d+(?:\.\d+)?", value.strip())):
+            ts = float(value)
+            if ts > 100_000_000_000:
+                ts /= 1000.0
+            return format_discount_end_datetime(datetime.fromtimestamp(ts, tz=timezone.utc))
+    except (OverflowError, OSError, ValueError):
+        pass
+
+    if isinstance(value, str):
+        raw = value.strip()
+        try:
+            dt = datetime.fromisoformat(raw.replace("Z", "+00:00"))
+            if dt.tzinfo is None:
+                dt = dt.replace(tzinfo=timezone.utc)
+            return format_discount_end_datetime(dt)
+        except ValueError:
+            pass
+
+    return ""
+
+
+def find_discount_end_value(obj, parent_key=""):
+    direct_keys = {
+        "discountenddate",
+        "discountenddt",
+        "discountendat",
+        "discountendtime",
+        "discountexpiration",
+        "discountfinishdate",
+        "discountfinishdt",
+    }
+    nested_end_keys = {"enddate", "enddt", "endat", "endtime", "expiration"}
+
+    if isinstance(obj, dict):
+        parent_norm = re.sub(r"[^a-z0-9]", "", str(parent_key).lower())
+        for key, value in obj.items():
+            key_norm = re.sub(r"[^a-z0-9]", "", str(key).lower())
+            if key_norm in direct_keys or ("discount" in parent_norm and key_norm in nested_end_keys):
+                if value not in (None, "", 0, "0"):
+                    return value
+        for key, value in obj.items():
+            found = find_discount_end_value(value, key)
+            if found not in (None, "", 0, "0"):
+                return found
+    elif isinstance(obj, list):
+        for value in obj:
+            found = find_discount_end_value(value, parent_key)
+            if found not in (None, "", 0, "0"):
+                return found
+    return None
+
+
+def parse_stove_page_discount_end(url: str):
+    try:
+        soup = BeautifulSoup(fetch(url), "html.parser")
+        text = clean_text(soup.get_text(" ", strip=True))
+    except Exception:
+        return ""
+
+    m = re.search(
+        r"(\d{4})[.\-/](\d{1,2})[.\-/](\d{1,2})\s+"
+        r"(\d{1,2}):(\d{2})\s*\(UTC\s*([+-]\d{1,2})(?::?(\d{2}))?\)"
+        r"[^\d]{0,30}할인\s*종료",
+        text,
+        re.I,
+    )
+    if not m:
+        return ""
+
+    year, month, day, hour, minute = map(int, m.group(1, 2, 3, 4, 5))
+    offset_hour = int(m.group(6))
+    offset_minute = int(m.group(7) or 0)
+    sign = 1 if offset_hour >= 0 else -1
+    offset = timezone(timedelta(hours=offset_hour, minutes=sign * offset_minute))
+    try:
+        return format_discount_end_datetime(datetime(year, month, day, hour, minute, tzinfo=offset))
+    except ValueError:
+        return ""
 
 
 def find_stove_price_object(obj, product_no: int):
@@ -228,6 +325,11 @@ def parse_stove(url: str):
     if sales_price is None:
         raise ValueError("STOVE KR 상품 API 응답에 판매가가 없습니다.")
 
+    try:
+        discount_rate_num = int(float(discount_rate or 0))
+    except (TypeError, ValueError):
+        discount_rate_num = 0
+
     title = get_any(product, "product_name", "productName")
     title_obj = product.get("title")
     if not title and isinstance(title_obj, dict):
@@ -239,9 +341,18 @@ def parse_stove(url: str):
             title = f"STOVE 상품 {product_no}"
 
     price = f"₩{int(float(sales_price)):,}"
-    if discount_rate not in (None, 0, 0.0, "0", "0.0"):
-        price += f" (-{int(float(discount_rate))}%)"
-    return title, price, "한국"
+    if discount_rate_num > 0:
+        price += f" (-{discount_rate_num}%)"
+
+    discount_end = ""
+    if discount_rate_num > 0:
+        discount_end = format_discount_end_value(find_discount_end_value(product))
+        if not discount_end:
+            discount_end = parse_stove_page_discount_end(url)
+        if discount_end:
+            print(f"STOVE 할인 종료: {discount_end}")
+
+    return title, price, "한국", discount_end
 
 
 def steam_appdetails(appid: str, cc: str, lang: str):
@@ -261,6 +372,89 @@ def steam_appdetails(appid: str, cc: str, lang: str):
 
 def steam_major_price(po):
     return int(po.get("final", 0)) // 100
+
+
+def steam_storebrowse_item(id_key: str, item_id: str, cc: str, lang: str):
+    payload = {
+        "ids": [{id_key: int(item_id)}],
+        "context": {
+            "language": lang,
+            "country_code": cc.upper(),
+            "steam_realm": 1,
+        },
+        "data_request": {
+            "include_all_purchase_options": True,
+            "include_best_purchase_option": True,
+        },
+    }
+    r = requests.get(
+        "https://api.steampowered.com/IStoreBrowseService/GetItems/v1/",
+        headers=HEADERS,
+        params={"input_json": json.dumps(payload, separators=(",", ":"))},
+        timeout=30,
+    )
+    r.raise_for_status()
+    items = r.json().get("response", {}).get("store_items", [])
+    if not items:
+        return None
+    return items[0]
+
+
+def steam_discount_end(id_key: str, item_id: str, cc: str, lang: str, region: str):
+    try:
+        item = steam_storebrowse_item(id_key, item_id, cc, lang)
+    except Exception as e:
+        print(f"Steam 할인 종료 조회 실패 ({region}): {e}", file=sys.stderr)
+        return ""
+    if not item:
+        return ""
+
+    options = []
+    best = item.get("best_purchase_option")
+    if isinstance(best, dict):
+        options.append(best)
+    own = item.get("self_purchase_option")
+    if isinstance(own, dict):
+        options.append(own)
+    for option in item.get("purchase_options") or []:
+        if isinstance(option, dict):
+            options.append(option)
+
+    seen = set()
+    end_times = []
+    now = time.time()
+    for option in options:
+        marker = (option.get("packageid"), option.get("bundleid"), option.get("formatted_final_price"))
+        if marker in seen:
+            continue
+        seen.add(marker)
+
+        # For a bundle lookup, prefer purchase options that actually refer to
+        # the requested bundle. App lookups may point to a package instead.
+        if id_key == "bundleid" and option.get("bundleid") not in (None, 0):
+            if str(option.get("bundleid")) != str(item_id):
+                continue
+
+        for discount in option.get("active_discounts") or []:
+            if not isinstance(discount, dict):
+                continue
+            raw_end = discount.get("discount_end_date")
+            try:
+                ts = float(raw_end)
+            except (TypeError, ValueError):
+                continue
+            if ts > now:
+                end_times.append(ts)
+
+    if not end_times:
+        return ""
+
+    # If multiple discounts are stacked, the current effective price can first
+    # change when the earliest active discount expires.
+    result = format_discount_end_value(min(end_times))
+    if result:
+        print(f"Steam 할인 종료: {item_id} / {region} / {result}")
+    return result
 
 
 def parse_steam_display_price(text: str, currency: str):
@@ -283,7 +477,6 @@ def parse_steam_display_price(text: str, currency: str):
 
 
 def steam_bundle_resolve(bundle_id: str, cc: str, lang: str, currency: str, symbol: str, region: str):
-    """Steam의 bundle resolve endpoint에서 국가별 번들 가격을 가져온다."""
     api_url = "https://store.steampowered.com/actions/ajaxresolvebundles"
     headers = {
         **HEADERS,
@@ -317,17 +510,18 @@ def steam_bundle_resolve(bundle_id: str, cc: str, lang: str, currency: str, symb
     if amount is None:
         return None
 
-    discount = bundle.get("discount_percent")
-    price = f"{symbol}{amount:,}"
     try:
-        discount = int(discount)
+        discount = int(bundle.get("discount_percent") or 0)
     except (TypeError, ValueError):
         discount = 0
+
+    price = f"{symbol}{amount:,}"
     if discount > 0:
         price += f" (-{discount}%)"
 
+    discount_end = steam_discount_end("bundleid", bundle_id, cc, lang, region) if discount > 0 else ""
     print(f"Steam Bundle resolve 사용: {bundle_id} / {region} / {formatted}")
-    return title, price, region
+    return title, price, region, discount_end
 
 
 def steam_bundle_page(bundle_id: str, url: str, cc: str, lang: str, currency: str, symbol: str, region: str):
@@ -362,29 +556,38 @@ def steam_bundle_page(bundle_id: str, url: str, cc: str, lang: str, currency: st
         for node in soup.select(selector):
             amount = parse_steam_display_price(node.get_text(" ", strip=True), currency)
             if amount is not None:
-                return title or f"Steam Bundle {bundle_id}", f"{symbol}{amount:,}", region
+                discount_end = steam_discount_end("bundleid", bundle_id, cc, lang, region)
+                return title or f"Steam Bundle {bundle_id}", f"{symbol}{amount:,}", region, discount_end
 
     return None
 
 
 def parse_steam_app(url: str, appid: str):
-    info = steam_appdetails(appid, "kr", "koreana")
-    if info:
-        title = info.get("name") or f"Steam App {appid}"
-        if info.get("is_free"):
-            return title, "₩0", "한국"
-        po = info.get("price_overview")
-        if po and po.get("currency") == "KRW":
-            return title, f"₩{steam_major_price(po):,}", "한국"
+    for cc, lang, symbol, region, currency in [
+        ("kr", "koreana", "₩", "한국", "KRW"),
+        ("jp", "japanese", "¥", "일본", "JPY"),
+    ]:
+        info = steam_appdetails(appid, cc, lang)
+        if not info:
+            continue
 
-    info = steam_appdetails(appid, "jp", "japanese")
-    if info:
         title = info.get("name") or f"Steam App {appid}"
         if info.get("is_free"):
-            return title, "¥0", "일본"
+            return title, f"{symbol}0", region, ""
+
         po = info.get("price_overview")
-        if po and po.get("currency") == "JPY":
-            return title, f"¥{steam_major_price(po):,}", "일본"
+        if not po or po.get("currency") != currency:
+            continue
+
+        price = f"{symbol}{steam_major_price(po):,}"
+        try:
+            discount = int(po.get("discount_percent") or 0)
+        except (TypeError, ValueError):
+            discount = 0
+        if discount > 0:
+            price += f" (-{discount}%)"
+        discount_end = steam_discount_end("appid", appid, cc, lang, region) if discount > 0 else ""
+        return title, price, region, discount_end
 
     raise ValueError("Steam 한국/일본 스토어 모두에서 판매 가격을 찾지 못했습니다.")
 
@@ -443,14 +646,14 @@ def parse_generic(url: str, html: str):
                 offers = obj.get("offers")
                 if isinstance(offers, dict) and offers.get("price") is not None:
                     currency = offers.get("priceCurrency", "")
-                    return title, f"{currency} {offers['price']}".strip(), ""
+                    return title, f"{currency} {offers['price']}".strip(), "", ""
                 stack.extend(v for v in obj.values() if isinstance(v, (dict, list)))
             elif isinstance(obj, list):
                 stack.extend(obj)
 
     m = PRICE_RE.search(text)
     if m:
-        return title, clean_text(m.group(0)), ""
+        return title, clean_text(m.group(0)), "", ""
     raise ValueError("가격을 자동 추출하지 못했습니다. 이 사이트용 파서 추가가 필요합니다.")
 
 
@@ -486,14 +689,33 @@ def post_discord(content: str):
     r.raise_for_status()
 
 
-def send_discord(index: int, title: str, old_price: str, new_price: str, url: str, region: str = ""):
+def send_discord(
+    index: int,
+    title: str,
+    old_price: str,
+    new_price: str,
+    url: str,
+    region: str = "",
+    discount_end: str = "",
+    old_discount_end: str = "",
+):
     region_line = f"지역: **{region}**\n" if region else ""
+    if discount_end and old_discount_end and discount_end != old_discount_end:
+        discount_line = f"할인 종료: `{old_discount_end}` → `{discount_end}`\n"
+    elif discount_end:
+        discount_line = f"할인 종료: **{discount_end}**\n"
+    elif old_discount_end and old_discount_end != discount_end:
+        discount_line = f"할인 종료: `{old_discount_end}` → `종료/정보 없음`\n"
+    else:
+        discount_line = ""
+
     post_discord(
-        "💰 **가격 변경 감지**\n\n"
+        "💰 **가격/할인 정보 변경 감지**\n\n"
         f"**#{index} · {title}**\n"
         f"{region_line}"
         f"이전: `{old_price}`\n"
         f"현재: `{new_price}`\n"
+        f"{discount_line}"
         f"<{url}>\n\n"
         f"⚙️ 가격 추적 관리: <{ACTIONS_URL}>"
     )
@@ -505,6 +727,8 @@ def send_current_report(items, failures):
         region = f" · {item['region']}" if item.get("region") else ""
         lines.append(f"**#{item['index']} · {item['title']}**")
         lines.append(f"현재: `{item['price']}`{region}")
+        if item.get("discount_end"):
+            lines.append(f"할인 종료: **{item['discount_end']}**")
         lines.append(f"<{item['url']}>")
         lines.append("")
     if failures:
@@ -545,19 +769,55 @@ def main():
 
     for index, url in enumerate(urls, start=1):
         try:
-            title, price, region = parse_page(url)
+            title, price, region, discount_end = parse_page(url)
             prev = old_items.get(url)
-            item = {"index": index, "title": title, "price": price, "region": region, "url": url}
-            new_items[url] = {"title": title, "price": price, "region": region, "url": url}
+            item = {
+                "index": index,
+                "title": title,
+                "price": price,
+                "region": region,
+                "discount_end": discount_end,
+                "url": url,
+            }
+            new_items[url] = {
+                "title": title,
+                "price": price,
+                "region": region,
+                "discount_end": discount_end,
+                "url": url,
+            }
             report_items.append(item)
 
+            end_suffix = f" / 할인 종료 {discount_end}" if discount_end else ""
             if prev is None:
-                print(f"기준점 등록: #{index} {title} = {price} ({region})")
-            elif prev.get("price") != price or prev.get("region", "") != region:
-                print(f"가격/지역 변경: #{index} {title}: {prev.get('price')} -> {price} [{region}]")
-                send_discord(index, title, prev.get("price", "알 수 없음"), price, url, region)
+                print(f"기준점 등록: #{index} {title} = {price} ({region}){end_suffix}")
+                continue
+
+            price_or_region_changed = prev.get("price") != price or prev.get("region", "") != region
+            # Migration-safe: old state entries have no discount_end key. Populate it
+            # silently once, then detect real deadline changes from subsequent runs.
+            end_changed = "discount_end" in prev and prev.get("discount_end", "") != discount_end
+
+            if price_or_region_changed or end_changed:
+                if price_or_region_changed:
+                    print(f"가격/지역 변경: #{index} {title}: {prev.get('price')} -> {price} [{region}]{end_suffix}")
+                else:
+                    print(
+                        f"할인 종료 변경: #{index} {title}: "
+                        f"{prev.get('discount_end', '') or '정보 없음'} -> {discount_end or '정보 없음'}"
+                    )
+                send_discord(
+                    index,
+                    title,
+                    prev.get("price", "알 수 없음"),
+                    price,
+                    url,
+                    region,
+                    discount_end,
+                    prev.get("discount_end", ""),
+                )
             else:
-                print(f"변경 없음: #{index} {title} = {price} ({region})")
+                print(f"변경 없음: #{index} {title} = {price} ({region}){end_suffix}")
         except Exception as e:
             msg = f"#{index} {url}: {e}"
             failures.append(msg)

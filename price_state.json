@@ -4,18 +4,21 @@
       "title": "칭송받는 자 - DLC 합본팩 컬렉션",
       "price": "₩100,000 (-20%)",
       "region": "한국",
+      "discount_end": "",
       "url": "https://store.onstove.com/ko/games/4067"
     },
     "https://store.onstove.com/ko/games/4692": {
       "title": "네코냥 컬렉션",
       "price": "₩82,800 (-10%)",
       "region": "한국",
+      "discount_end": "",
       "url": "https://store.onstove.com/ko/games/4692"
     },
     "https://store.steampowered.com/bundle/13066/Atelier_Dusk_Trilogy_Deluxe_Pack/": {
       "title": "アトリエ ～黄昏の錬金術士 トリロジー～ DX",
       "price": "¥6,018 (-60%)",
       "region": "일본",
+      "discount_end": "2026-09-29 02:00 KST",
       "url": "https://store.steampowered.com/bundle/13066/Atelier_Dusk_Trilogy_Deluxe_Pack/"
     }
   }

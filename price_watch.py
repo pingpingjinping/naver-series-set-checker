@@ -27,6 +27,7 @@ HEADERS = {
 
 STOVE_PRODUCT_RE = re.compile(r"store\.onstove\.com/(?:[a-z]{2}/)?games/(\d+)", re.I)
 STEAM_APP_RE = re.compile(r"store\.steampowered\.com/app/(\d+)", re.I)
+STEAM_BUNDLE_RE = re.compile(r"store\.steampowered\.com/bundle/(\d+)", re.I)
 PRICE_RE = re.compile(r"(?:₩|￦|¥|￥|\$|€|£)\s?[0-9][0-9,.]*|[0-9][0-9,.]*\s?(?:원|엔)")
 
 STOVE_PRICE_COMPONENT_TYPES = [
@@ -264,12 +265,90 @@ def steam_major_price(po):
     return int(po.get("final", 0)) // 100
 
 
-def parse_steam(url: str):
-    m = STEAM_APP_RE.search(url)
-    if not m:
-        raise ValueError("Steam URL에서 App ID를 찾지 못했습니다.")
-    appid = m.group(1)
+def parse_steam_display_price(text: str, currency: str):
+    text = clean_text(text)
+    if currency == "KRW":
+        patterns = [
+            r"(?:₩|￦)\s*([0-9][0-9,.]*)",
+            r"([0-9][0-9,.]*)\s*원",
+        ]
+    elif currency == "JPY":
+        patterns = [
+            r"(?:¥|￥)\s*([0-9][0-9,.]*)",
+            r"([0-9][0-9,.]*)\s*엔",
+        ]
+    else:
+        return None
 
+    for pattern in patterns:
+        m = re.search(pattern, text)
+        if not m:
+            continue
+        digits = re.sub(r"[^0-9]", "", m.group(1))
+        if digits:
+            return int(digits)
+    return None
+
+
+def steam_bundle_page(bundle_id: str, url: str, cc: str, lang: str, currency: str, symbol: str, region: str):
+    cookies = {
+        "birthtime": "0",
+        "lastagecheckage": "1-January-1990",
+    }
+    r = requests.get(
+        url,
+        headers=HEADERS,
+        params={"cc": cc, "l": lang},
+        cookies=cookies,
+        timeout=30,
+    )
+    r.raise_for_status()
+    soup = BeautifulSoup(r.text, "html.parser")
+
+    title = None
+    for selector in ["h2.pageheader", ".pageheader", ".bundle_page_header h2"]:
+        node = soup.select_one(selector)
+        if node:
+            title = clean_text(node.get_text(" ", strip=True))
+            if title:
+                break
+    if not title:
+        title = parse_title(soup)
+    title = re.sub(r"\s+(?:on Steam|Steam에서)$", "", title, flags=re.I)
+
+    price_selectors = [
+        ".bundle_area_purchase_game .discount_final_price",
+        ".bundle_area_purchase_game .game_purchase_price",
+        ".bundle_area_purchase_game .your_price",
+        ".bundle_area_purchase_game .discount_prices",
+    ]
+    for selector in price_selectors:
+        for node in soup.select(selector):
+            amount = parse_steam_display_price(node.get_text(" ", strip=True), currency)
+            if amount is not None:
+                return title or f"Steam Bundle {bundle_id}", f"{symbol}{amount:,}", region
+
+    # Steam bundle purchase blocks often expose the current price as a minor-unit
+    # data attribute even when the visible price markup changes.
+    data_price_nodes = soup.select(
+        ".bundle_area_purchase_game [data-price-final], "
+        ".bundle_area_purchase_game[data-price-final]"
+    )
+    for node in data_price_nodes:
+        raw = node.get("data-price-final")
+        if raw is None:
+            continue
+        try:
+            amount = int(raw) // 100
+        except (TypeError, ValueError):
+            continue
+        if amount > 0:
+            return title or f"Steam Bundle {bundle_id}", f"{symbol}{amount:,}", region
+
+    return None
+
+
+def parse_steam_app(url: str, appid: str):
     info = steam_appdetails(appid, "kr", "koreana")
     if info:
         title = info.get("name") or f"Steam App {appid}"
@@ -289,6 +368,30 @@ def parse_steam(url: str):
             return title, f"¥{steam_major_price(po):,}", "일본"
 
     raise ValueError("Steam 한국/일본 스토어 모두에서 판매 가격을 찾지 못했습니다.")
+
+
+def parse_steam_bundle(url: str, bundle_id: str):
+    result = steam_bundle_page(bundle_id, url, "kr", "koreana", "KRW", "₩", "한국")
+    if result:
+        return result
+
+    result = steam_bundle_page(bundle_id, url, "jp", "japanese", "JPY", "¥", "일본")
+    if result:
+        return result
+
+    raise ValueError("Steam Bundle 한국/일본 스토어 모두에서 판매 가격을 찾지 못했습니다.")
+
+
+def parse_steam(url: str):
+    m = STEAM_APP_RE.search(url)
+    if m:
+        return parse_steam_app(url, m.group(1))
+
+    m = STEAM_BUNDLE_RE.search(url)
+    if m:
+        return parse_steam_bundle(url, m.group(1))
+
+    raise ValueError("지원하는 Steam App/Bundle ID를 URL에서 찾지 못했습니다.")
 
 
 def parse_generic(url: str, html: str):

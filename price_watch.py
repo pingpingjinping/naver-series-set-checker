@@ -81,7 +81,6 @@ def get_any(d, *keys):
 
 
 def find_stove_price_object(obj, product_no: int):
-    """STOVE 응답에서 현재 상품의 KRW 가격 객체를 찾는다. snake_case/camelCase 모두 지원."""
     fallback = None
 
     def walk(value):
@@ -98,18 +97,15 @@ def find_stove_price_object(obj, product_no: int):
                         return value
                     if fallback is None:
                         fallback = value
-
             for child in value.values():
                 found = walk(child)
                 if found is not None:
                     return found
-
         elif isinstance(value, list):
             for child in value:
                 found = walk(child)
                 if found is not None:
                     return found
-
         return None
 
     exact = walk(obj)
@@ -208,8 +204,7 @@ def parse_stove(url: str):
         tried.append(component_id)
         r = requests.get(api_url, headers=headers, params=params, timeout=30)
         r.raise_for_status()
-        data = r.json()
-        product = find_stove_price_object(data, product_no)
+        product = find_stove_price_object(r.json(), product_no)
         if product:
             print(f"STOVE 가격 컴포넌트 사용: {component_id}")
             break
@@ -239,21 +234,24 @@ def parse_stove(url: str):
         title = title_obj.get("text")
     if not title:
         try:
-            html = fetch(url)
-            title = parse_title(BeautifulSoup(html, "html.parser"))
+            title = parse_title(BeautifulSoup(fetch(url), "html.parser"))
         except Exception:
             title = f"STOVE 상품 {product_no}"
 
     price = f"₩{int(float(sales_price)):,}"
     if discount_rate not in (None, 0, 0.0, "0", "0.0"):
-        rate = int(float(discount_rate))
-        price += f" (-{rate}%)"
+        price += f" (-{int(float(discount_rate))}%)"
     return title, price, "한국"
 
 
 def steam_appdetails(appid: str, cc: str, lang: str):
-    api_url = f"https://store.steampowered.com/api/appdetails?appids={appid}&cc={cc}&l={lang}"
-    r = requests.get(api_url, headers=HEADERS, timeout=30)
+    api_url = "https://store.steampowered.com/api/appdetails"
+    r = requests.get(
+        api_url,
+        headers=HEADERS,
+        params={"appids": appid, "cc": cc, "l": lang},
+        timeout=30,
+    )
     r.raise_for_status()
     data = r.json().get(appid, {})
     if not data.get("success"):
@@ -268,15 +266,9 @@ def steam_major_price(po):
 def parse_steam_display_price(text: str, currency: str):
     text = clean_text(text)
     if currency == "KRW":
-        patterns = [
-            r"(?:₩|￦)\s*([0-9][0-9,.]*)",
-            r"([0-9][0-9,.]*)\s*원",
-        ]
+        patterns = [r"(?:₩|￦)\s*([0-9][0-9,.]*)", r"([0-9][0-9,.]*)\s*원"]
     elif currency == "JPY":
-        patterns = [
-            r"(?:¥|￥)\s*([0-9][0-9,.]*)",
-            r"([0-9][0-9,.]*)\s*엔",
-        ]
+        patterns = [r"(?:¥|￥)\s*([0-9][0-9,.]*)", r"([0-9][0-9,.]*)\s*엔"]
     else:
         return None
 
@@ -290,11 +282,56 @@ def parse_steam_display_price(text: str, currency: str):
     return None
 
 
-def steam_bundle_page(bundle_id: str, url: str, cc: str, lang: str, currency: str, symbol: str, region: str):
-    cookies = {
-        "birthtime": "0",
-        "lastagecheckage": "1-January-1990",
+def steam_bundle_resolve(bundle_id: str, cc: str, lang: str, currency: str, symbol: str, region: str):
+    """Steam의 bundle resolve endpoint에서 국가별 번들 가격을 가져온다."""
+    api_url = "https://store.steampowered.com/actions/ajaxresolvebundles"
+    headers = {
+        **HEADERS,
+        "Accept": "application/json, text/javascript, */*; q=0.01",
+        "Referer": "https://store.steampowered.com/",
+        "X-Requested-With": "XMLHttpRequest",
     }
+    r = requests.get(
+        api_url,
+        headers=headers,
+        params={"bundleids": bundle_id, "cc": cc.upper(), "l": lang},
+        timeout=30,
+    )
+    r.raise_for_status()
+    data = r.json()
+    if not isinstance(data, list) or not data:
+        return None
+
+    bundle = next(
+        (x for x in data if isinstance(x, dict) and str(x.get("bundleid")) == str(bundle_id)),
+        None,
+    )
+    if bundle is None and isinstance(data[0], dict):
+        bundle = data[0]
+    if not bundle:
+        return None
+
+    title = clean_text(str(bundle.get("name") or f"Steam Bundle {bundle_id}"))
+    formatted = clean_text(str(bundle.get("formatted_final_price") or ""))
+    amount = parse_steam_display_price(formatted, currency)
+    if amount is None:
+        return None
+
+    discount = bundle.get("discount_percent")
+    price = f"{symbol}{amount:,}"
+    try:
+        discount = int(discount)
+    except (TypeError, ValueError):
+        discount = 0
+    if discount > 0:
+        price += f" (-{discount}%)"
+
+    print(f"Steam Bundle resolve 사용: {bundle_id} / {region} / {formatted}")
+    return title, price, region
+
+
+def steam_bundle_page(bundle_id: str, url: str, cc: str, lang: str, currency: str, symbol: str, region: str):
+    cookies = {"birthtime": "0", "lastagecheckage": "1-January-1990"}
     r = requests.get(
         url,
         headers=HEADERS,
@@ -316,34 +353,16 @@ def steam_bundle_page(bundle_id: str, url: str, cc: str, lang: str, currency: st
         title = parse_title(soup)
     title = re.sub(r"\s+(?:on Steam|Steam에서)$", "", title, flags=re.I)
 
-    price_selectors = [
+    for selector in [
         ".bundle_area_purchase_game .discount_final_price",
         ".bundle_area_purchase_game .game_purchase_price",
         ".bundle_area_purchase_game .your_price",
         ".bundle_area_purchase_game .discount_prices",
-    ]
-    for selector in price_selectors:
+    ]:
         for node in soup.select(selector):
             amount = parse_steam_display_price(node.get_text(" ", strip=True), currency)
             if amount is not None:
                 return title or f"Steam Bundle {bundle_id}", f"{symbol}{amount:,}", region
-
-    # Steam bundle purchase blocks often expose the current price as a minor-unit
-    # data attribute even when the visible price markup changes.
-    data_price_nodes = soup.select(
-        ".bundle_area_purchase_game [data-price-final], "
-        ".bundle_area_purchase_game[data-price-final]"
-    )
-    for node in data_price_nodes:
-        raw = node.get("data-price-final")
-        if raw is None:
-            continue
-        try:
-            amount = int(raw) // 100
-        except (TypeError, ValueError):
-            continue
-        if amount > 0:
-            return title or f"Steam Bundle {bundle_id}", f"{symbol}{amount:,}", region
 
     return None
 
@@ -371,13 +390,23 @@ def parse_steam_app(url: str, appid: str):
 
 
 def parse_steam_bundle(url: str, bundle_id: str):
-    result = steam_bundle_page(bundle_id, url, "kr", "koreana", "KRW", "₩", "한국")
-    if result:
-        return result
+    for cc, lang, currency, symbol, region in [
+        ("kr", "koreana", "KRW", "₩", "한국"),
+        ("jp", "japanese", "JPY", "¥", "일본"),
+    ]:
+        try:
+            result = steam_bundle_resolve(bundle_id, cc, lang, currency, symbol, region)
+            if result:
+                return result
+        except Exception as e:
+            print(f"Steam Bundle resolve 실패 ({region}): {e}", file=sys.stderr)
 
-    result = steam_bundle_page(bundle_id, url, "jp", "japanese", "JPY", "¥", "일본")
-    if result:
-        return result
+        try:
+            result = steam_bundle_page(bundle_id, url, cc, lang, currency, symbol, region)
+            if result:
+                return result
+        except Exception as e:
+            print(f"Steam Bundle 페이지 fallback 실패 ({region}): {e}", file=sys.stderr)
 
     raise ValueError("Steam Bundle 한국/일본 스토어 모두에서 판매 가격을 찾지 못했습니다.")
 

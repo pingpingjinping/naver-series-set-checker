@@ -85,6 +85,36 @@ def parse_items(html: str):
 
     return list(items.values())
 
+def is_bl_product(item):
+    """네이버 시리즈 작품 장르가 BL이면 True.
+
+    제목에 [BL]이 붙은 경우는 바로 판정하고, 그렇지 않은 작품은 상세 페이지의
+    장르 링크(genreCode=107)를 확인한다. 상세 페이지 확인에 실패하면 정상 작품을
+    놓치지 않도록 False로 처리하고 로그만 남긴다.
+    """
+    if re.search(r"\[\s*BL\s*\]", item.get("title", ""), re.IGNORECASE):
+        return True
+
+    try:
+        r = requests.get(item["url"], headers=HEADERS, timeout=30)
+        r.raise_for_status()
+        soup = BeautifulSoup(r.text, "html.parser")
+
+        for a in soup.find_all("a", href=True):
+            href = urljoin(BASE, a["href"])
+            qs = parse_qs(urlparse(href).query)
+            if (qs.get("genreCode") or [""])[0] == "107":
+                return True
+
+        # 네이버가 장르 링크 마크업을 바꿔도, 작품 정보 영역에 BL이 명시된 경우를 보조 판정.
+        for node in soup.find_all(["li", "dd", "span"]):
+            if clean_text(node.get_text(" ", strip=True)).upper() == "BL":
+                return True
+    except Exception as e:
+        print(f"BL 태그 확인 실패: {item.get('title', item.get('id'))} ({e})")
+
+    return False
+
 def load_state():
     if not STATE_FILE.exists():
         return None
@@ -164,13 +194,29 @@ def main():
     print(f"현재 {len(items)}개 / 신규 {len(new_items)}개")
 
     if new_items:
-        # 최신순 페이지 순서를 최대한 유지
-        send_discord(new_items)
-        print("Discord 알림 전송 완료")
+        notify_items = []
+        skipped_bl = []
+        for item in new_items:
+            if is_bl_product(item):
+                skipped_bl.append(item)
+                print(f"BL 알림 제외: {item['title']}")
+            else:
+                notify_items.append(item)
+            time.sleep(0.2)
+
+        if skipped_bl:
+            print(f"BL 작품 {len(skipped_bl)}개 알림 제외")
+
+        if notify_items:
+            # 최신순 페이지 순서를 최대한 유지
+            send_discord(notify_items)
+            print(f"Discord 알림 전송 완료: {len(notify_items)}개")
+        else:
+            print("알림 대상 신규 작품 없음 (BL 제외 후 0개)")
     else:
         print("신규 작품 없음")
 
-    # 최신 스냅샷 저장
+    # BL 포함 전체 최신 스냅샷을 저장해서 제외 작품이 다음 실행에 다시 잡히지 않게 한다.
     save_state(items)
 
 if __name__ == "__main__":

@@ -51,7 +51,7 @@ def send_discord(index: int, prev: dict, current: dict, url: str):
     else:
         discount_line = ""
 
-    history_line = ih.history_low_lines(current, include_links=True)
+    history_line = ih.history_low_lines(current, include_links=False)
 
     pw.post_discord(
         f"{pw.change_header(prev, current)}\n\n"

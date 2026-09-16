@@ -11,10 +11,10 @@ EXCLUSIVE_MARKER = "▪︎"
 def compact_sections(site_name: str, titles):
     if site_name == "리디":
         exclusive_bucket = "리디 독점"
-        order = ["🆕 신작", "🔄 후속권", exclusive_bucket, "기타"]
+        order = ["🔸 신작", "🔹 후속권", exclusive_bucket, "기타"]
     else:
         exclusive_bucket = "알라딘 독점"
-        order = ["🆕 신간", "🔄 후속권", exclusive_bucket, "기타"]
+        order = ["🔸 신간", "🔹 후속권", exclusive_bucket, "기타"]
 
     buckets = {name: [] for name in order}
 
@@ -31,17 +31,17 @@ def compact_sections(site_name: str, titles):
             text = text.replace("⭐ [알라딘 독점]", "")
 
         if "🆕 [신작]" in text:
-            bucket = "🆕 신작"
+            bucket = "🔸 신작"
             text = text.replace("🆕 [신작]", "")
         elif "🆕 [신간]" in text:
-            bucket = "🆕 신간"
+            bucket = "🔸 신간"
             text = text.replace("🆕 [신간]", "")
         elif "✨ [신규 연재]" in text:
             # 알라딘 신규 연재도 별도 구분 없이 신간으로 합친다.
-            bucket = "🆕 신간"
+            bucket = "🔸 신간"
             text = text.replace("✨ [신규 연재]", "")
         elif "🔄 [후속권]" in text:
-            bucket = "🔄 후속권"
+            bucket = "🔹 후속권"
             text = text.replace("🔄 [후속권]", "")
         elif exclusive:
             bucket = exclusive_bucket

@@ -3,13 +3,16 @@ import time
 import monthly_release_report as core
 
 
+SMALL_STAR = "⋆"
+
+
 def compact_sections(site_name: str, titles):
     if site_name == "리디":
-        exclusive_bucket = "⭐ 리디 독점"
+        exclusive_bucket = f"{SMALL_STAR} 리디 독점"
         order = ["🆕 신작", "🔄 후속권", exclusive_bucket, "기타"]
     else:
-        exclusive_bucket = "⭐ 알라딘 독점"
-        order = ["🆕 신간", "✨ 신규 연재", "🔄 후속권", exclusive_bucket, "기타"]
+        exclusive_bucket = f"{SMALL_STAR} 알라딘 독점"
+        order = ["🆕 신간", "🔄 후속권", exclusive_bucket, "기타"]
 
     buckets = {name: [] for name in order}
 
@@ -32,7 +35,8 @@ def compact_sections(site_name: str, titles):
             bucket = "🆕 신간"
             text = text.replace("🆕 [신간]", "")
         elif "✨ [신규 연재]" in text:
-            bucket = "✨ 신규 연재"
+            # 알라딘 신규 연재도 별도 구분 없이 신간으로 합친다.
+            bucket = "🆕 신간"
             text = text.replace("✨ [신규 연재]", "")
         elif "🔄 [후속권]" in text:
             bucket = "🔄 후속권"
@@ -44,9 +48,10 @@ def compact_sections(site_name: str, titles):
         if not text:
             continue
 
-        # 독점이 신작/후속권과 같이 붙은 경우엔 카테고리를 중복시키지 않고 별 하나로만 표시한다.
+        # 독점이 신작/후속권과 같이 붙은 경우엔 카테고리를 중복시키지 않고
+        # 눈에 거슬리지 않는 작은 별 하나만 작품 앞에 표시한다.
         if exclusive:
-            text = f"⭐ {text}"
+            text = f"{SMALL_STAR} {text}"
 
         if text not in buckets[bucket]:
             buckets[bucket].append(text)
@@ -58,6 +63,7 @@ def send_report(site_name: str, emoji: str, year: int, month: int, groups, sourc
     total = sum(len(v["titles"]) for v in groups.values())
     base_header = f"{emoji} **{site_name} {year}년 {month}월 만화 출시 일정**\n총 **{total}개**"
     footer = f"\n📅 원본 캘린더: <{source_url}>"
+    site_icon = "📘" if site_name == "리디" else "📙"
 
     messages = []
     current = base_header + "\n"
@@ -70,7 +76,8 @@ def send_report(site_name: str, emoji: str, year: int, month: int, groups, sourc
 
     for day in sorted(groups):
         group = groups[day]
-        day_header = f"\n**{group['label']}**\n"
+        # 긴 보고서를 아래로 내려가며 읽어도 어느 사이트인지 바로 알 수 있게 날짜마다 표시한다.
+        day_header = f"\n**{site_icon} {group['label']}**\n"
 
         if len(current) + len(day_header) + len(footer) > 1900:
             start_new(day_header)

@@ -32,6 +32,17 @@
       "base_discount": 5,
       "base_discount_label": "번들 할인",
       "url": "https://store.steampowered.com/bundle/13066/Atelier_Dusk_Trilogy_Deluxe_Pack/"
+    },
+    "https://store.steampowered.com/app/886820/Nelke__the_Legendary_Alchemists_Ateliers_of_the_New_World/": {
+      "title": "ネルケと伝説の錬金術士たち ～新たな大地のアトリエ～",
+      "price": "¥1,973 (-77%)",
+      "region": "일본",
+      "discount_end": "2026-09-29 02:00 KST",
+      "sale_active": true,
+      "discount_percent": 77,
+      "base_discount": 0,
+      "base_discount_label": "",
+      "url": "https://store.steampowered.com/app/886820/Nelke__the_Legendary_Alchemists_Ateliers_of_the_New_World/"
     }
   }
 }

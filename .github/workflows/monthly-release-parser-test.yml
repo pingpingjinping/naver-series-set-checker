@@ -1,0 +1,40 @@
+name: Monthly Release Parser Test
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/monthly-release-parser-test.yml
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Verify parsers
+        run: |
+          python - <<'PY'
+          from datetime import datetime
+          from zoneinfo import ZoneInfo
+          import monthly_release_report as m
+
+          now = datetime.now(ZoneInfo('Asia/Seoul'))
+          for name, fn in [('ridi', m.parse_ridi), ('aladin', m.parse_aladin)]:
+              groups, url = fn(now.year, now.month)
+              titles = [title for group in groups.values() for title in group['titles']]
+              print(f'{name}: days={len(groups)} total={len(titles)} url={url}')
+              print('tagged=', sum(1 for t in titles if t.startswith(('⭐', '🆕', '🔄', '✨'))))
+              print('set-tag-visible=', sum(1 for t in titles if '[세트' in t or '[특가 세트' in t))
+              for day in sorted(groups)[:3]:
+                  print(day, groups[day]['label'], groups[day]['titles'][:8])
+          PY

@@ -222,8 +222,6 @@ def send_discord(new_items):
 
     for item in new_items:
         line = f"\n**{item['title']}**"
-        if item.get("date"):
-            line += f"\n등록/업데이트: {item['date']}"
         if item.get("discount"):
             line += f"\n세트 할인: **{item['discount']}**"
         if item.get("discount_end"):

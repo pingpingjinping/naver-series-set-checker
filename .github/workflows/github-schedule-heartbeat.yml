@@ -16,7 +16,7 @@ jobs:
         run: |
           python3 - <<'PY' > /tmp/heartbeat.json
           import json
-          print(json.dumps({"content": "\n".join(["now github action working"] * 20)}))
+          print(json.dumps({"content": "now github action working"}))
           PY
 
           curl -fsS \

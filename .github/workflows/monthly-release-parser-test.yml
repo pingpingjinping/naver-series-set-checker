@@ -21,37 +21,20 @@ jobs:
           python-version: "3.12"
       - name: Install dependencies
         run: pip install -r requirements.txt
-      - name: Inspect Ridi badges
+      - name: Verify final parsers
         run: |
           python - <<'PY'
-          import re
-          from collections import Counter
+          from datetime import datetime
+          from zoneinfo import ZoneInfo
           import monthly_release_report as m
 
-          text = m.jina_text(m.RIDI_URL)
-          lines = text.splitlines()
-          print('--- FIRST 60 LINES ---')
-          for i, line in enumerate(lines[:60]):
-              print(f'{i}: {line}')
-
-          bullet = re.compile(r'^\s*[-*]\s+(.+?)\s*$')
-          current_title = None
-          combos = Counter()
-          examples = {}
-          for line in lines:
-              b = bullet.match(line.strip())
-              if b:
-                  current_title = m.clean_markdown(b.group(1))
-                  continue
-              imgs = m.MD_IMAGE_DETAIL_RE.findall(line)
-              if current_title and imgs:
-                  keys = tuple(m.image_key(url) for _, url in imgs)
-                  if keys:
-                      combos[keys] += 1
-                      examples.setdefault(keys, current_title)
-                      current_title = None
-
-          print('\n--- BADGE COMBOS ---')
-          for keys, count in combos.most_common():
-              print(count, keys, 'EXAMPLE=', examples[keys])
+          now = datetime.now(ZoneInfo('Asia/Seoul'))
+          for name, fn in [('ridi', m.parse_ridi), ('aladin', m.parse_aladin)]:
+              groups, url = fn(now.year, now.month)
+              titles = [title for group in groups.values() for title in group['titles']]
+              print(f'{name}: days={len(groups)} total={len(titles)} url={url}')
+              print('tagged=', sum(1 for t in titles if t.startswith(('⭐', '🆕', '🔄', '✨'))))
+              print('visible-set-tags=', [t for t in titles if '[세트' in t or '[특가 세트' in t][:5])
+              for day in sorted(groups)[:3]:
+                  print(day, groups[day]['label'], groups[day]['titles'][:10])
           PY

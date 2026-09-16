@@ -39,4 +39,4 @@ jobs:
         env:
           DISCORD_WEBHOOK: ${{ secrets.SERIES_DISCORD_WEBHOOK }}
           SOURCE: ${{ inputs.source }}
-        run: python monthly_release_report.py
+        run: python monthly_release_report_compact.py

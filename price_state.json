@@ -32,17 +32,6 @@
       "base_discount": 5,
       "base_discount_label": "번들 할인",
       "url": "https://store.steampowered.com/bundle/13066/Atelier_Dusk_Trilogy_Deluxe_Pack/"
-    },
-    "https://store.steampowered.com/app/42670/Singularity/": {
-      "title": "Singularity™",
-      "price": "₩13,830 (-67%)",
-      "region": "한국",
-      "discount_end": "2026-09-18 02:00 KST",
-      "sale_active": true,
-      "discount_percent": 67,
-      "base_discount": 0,
-      "base_discount_label": "",
-      "url": "https://store.steampowered.com/app/42670/Singularity/"
     }
   }
 }

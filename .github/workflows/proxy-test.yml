@@ -13,31 +13,27 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-
       - name: Install dependencies
-        run: pip install -r requirements.txt
-
-      - name: Inspect Aladin markdown
+        run: pip install requests beautifulsoup4
+      - name: Inspect Aladin item HTML
         run: |
           python - <<'PY'
-          import monthly_release_report as m
-          text = m.jina_text('https://www.aladin.co.kr/events/wevent.aspx?EventId=314299')
-          lines = text.splitlines()
-          needles = ['만화', '성인', '1(화)', '9(수)', '29(화)', '회사소개']
-          for needle in needles:
-              print('\n===== NEEDLE', needle)
-              hits = [i for i, line in enumerate(lines) if needle in line]
-              print('hits', hits[:10])
-              for i in hits[:3]:
-                  start=max(0,i-4); end=min(len(lines),i+10)
-                  for j in range(start,end):
-                      print(f'{j:04d}: {lines[j]}')
-                  print('---')
+          import requests
+          from bs4 import BeautifulSoup
+          url='https://mall.aladin.co.kr/events/wevent.aspx?EventId=314299'
+          r=requests.get(url,headers={'User-Agent':'Mozilla/5.0'},timeout=30)
+          print('status',r.status_code,len(r.content))
+          soup=BeautifulSoup(r.text,'html.parser')
+          node=soup.find(string=lambda s: s and '요리 군과 다시 만날 수는 없어' in s)
+          print('node=',repr(node))
+          if node:
+              p=node.parent
+              for level in range(5):
+                  print('\nLEVEL',level,'tag=',p.name,'class=',p.get('class'),'id=',p.get('id'))
+                  print(str(p)[:5000])
+                  p=p.parent
           PY

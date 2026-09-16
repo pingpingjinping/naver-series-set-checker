@@ -70,6 +70,7 @@ def jina_text(url: str):
 def clean_markdown(text: str):
     text = MD_IMAGE_RE.sub("", text or "")
     text = MD_LINK_RE.sub(r"\1", text)
+    text = re.sub(r"^\s*#{1,6}\s*", "", text)
     text = re.sub(r"[*_`~]+", "", text)
     text = re.sub(r"\s+", " ", text).strip(" |\t")
     return text.strip()
@@ -147,40 +148,29 @@ def find_aladin_calendar(month: int):
 
 
 def parse_aladin(year: int, month: int):
+    """알라딘 캘린더 HTML의 출시일 박스에서 제목 열만 직접 읽는다."""
     url = find_aladin_calendar(month)
-    text = jina_text(url)
+    r = requests.get(url, headers=HEADERS, timeout=30)
+    r.raise_for_status()
+    soup = BeautifulSoup(r.text, "html.parser")
     groups = {}
-    current = None
 
-    date_re = re.compile(r"^#{0,6}\s*(\d{1,2})\(([^)]+)\)\s*$")
-    bullet_re = re.compile(r"^\s*[-*]\s+(.+?)\s*$")
-
-    for raw in text.splitlines():
-        line = raw.strip()
-        m = date_re.match(line)
-        if m:
-            day = int(m.group(1))
-            weekday = m.group(2).strip()
-            current = (day, weekday)
+    for box in soup.select("dl.monthC_comicbox_book"):
+        dt = box.find("dt")
+        if not dt:
+            continue
+        date_text = clean_markdown(dt.get_text(" ", strip=True))
+        m = re.search(r"(\d{1,2})\s*\(([^)]+)\)", date_text)
+        if not m:
+            continue
+        day = int(m.group(1))
+        weekday = m.group(2).strip()
+        if day < 1 or day > 31:
             continue
 
-        if not current:
-            continue
-
-        # Jina Reader가 알라딘 표를 "Image | 제목 | 저자" 형태로 내보내는 경우.
-        if "|" in line:
-            cells = [clean_markdown(x) for x in line.split("|")]
-            cells = [x for x in cells if x and not x.lower().startswith("image")]
-            if cells:
-                day, weekday = current
-                add_item(groups, day, f"{month}/{day} ({weekday})", cells[0])
-                continue
-
-        # 표가 목록 형태로 변환되는 경우도 대응.
-        b = bullet_re.match(line)
-        if b:
-            day, weekday = current
-            add_item(groups, day, f"{month}/{day} ({weekday})", b.group(1))
+        for cell in box.select("td.monthC_comicbox_text1"):
+            title = cell.get_text(" ", strip=True)
+            add_item(groups, day, f"{month}/{day} ({weekday})", title)
 
     if not groups:
         raise ValueError("알라딘 이번 달 출시작을 파싱하지 못했습니다.")

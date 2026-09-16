@@ -5,6 +5,8 @@ from pathlib import Path
 
 import requests
 
+import itad_history as ih
+
 URLS_FILE = Path("price_urls.txt")
 STATE_FILE = Path("price_state.json")
 DISCORD_WEBHOOK = os.environ.get("DISCORD_WEBHOOK", "").strip()
@@ -60,6 +62,9 @@ def main():
                 region_text = f" · {region}" if region else ""
                 lines.append(f"**#{i} · {title}**")
                 lines.append(f"현재: `{price}`{region_text}")
+                history = ih.history_low_lines(item, include_links=True).rstrip()
+                if history:
+                    lines.extend(history.splitlines())
             else:
                 lines.append(f"**#{i} · 조회 정보 없음**")
             lines.append(f"<{url}>")

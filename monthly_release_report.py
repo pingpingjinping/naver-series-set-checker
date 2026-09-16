@@ -13,7 +13,7 @@ SOURCE = os.environ.get("SOURCE", "both").strip().lower() or "both"
 KST = ZoneInfo("Asia/Seoul")
 
 RIDI_URL = "https://ridibooks.com/event/11339"
-ALADIN_LIST_URL = "https://www.aladin.co.kr/events/wevent_main_ebook.aspx?CID=38416"
+ALADIN_LIST_URL = "https://mall.aladin.co.kr/events/wevent_main_ebook.aspx?CID=38416"
 ALADIN_CALENDAR_RE = re.compile(r"(?P<month>\d{1,2})월\s*eBook\s*만화\s*출간\s*일정\s*캘린더", re.I)
 
 HEADERS = {
@@ -28,7 +28,7 @@ JINA_HEADERS = {"User-Agent": "Mozilla/5.0"}
 
 MD_IMAGE_RE = re.compile(r"!\[[^\]]*\]\([^)]*\)")
 MD_IMAGE_DETAIL_RE = re.compile(r"!\[([^\]]*)\]\(([^)]+)\)")
-MD_LINK_RE = re.compile(r"\[([^\]]+)\]\([^)]*\)")
+MD_LINK_RE = re.compile(r"\[(.*?)\]\((?:https?://)[^)]*\)")
 
 RIDI_CATEGORY_ORDER = ["RIDI ONLY", "신작", "후속권 업데이트"]
 RIDI_CATEGORY_TAGS = {
@@ -37,6 +37,12 @@ RIDI_CATEGORY_TAGS = {
     "후속권 업데이트": "🔄 [후속권]",
 }
 RIDI_SET_CATEGORY = "세트전"
+RIDI_LABEL_FALLBACK = {
+    "20240215154705_529079.png": "RIDI ONLY",
+    "20240215154750_031013.png": "신작",
+    "20240215154844_434923.png": "세트전",
+    "20240215154859_482261.png": "후속권 업데이트",
+}
 
 ALADIN_CATEGORY_TAGS = {
     "알라딘 독점": "⭐ [알라딘 독점]",
@@ -93,6 +99,23 @@ def jina_text(url: str):
     raise last_error
 
 
+def fetch_aladin_html(url: str):
+    """알라딘이 간헐적으로 특정 UA에 403을 주므로 헤더를 바꿔 재시도한다."""
+    last_error = None
+    header_options = [JINA_HEADERS, {}, HEADERS]
+    for attempt in range(3):
+        for headers in header_options:
+            try:
+                r = requests.get(url, headers=headers, timeout=30)
+                r.raise_for_status()
+                return r.text
+            except Exception as exc:
+                last_error = exc
+        if attempt < 2:
+            time.sleep(1.2 * (attempt + 1))
+    raise last_error
+
+
 def clean_markdown(text: str):
     text = MD_IMAGE_RE.sub("", text or "")
     text = MD_LINK_RE.sub(r"\1", text)
@@ -117,6 +140,19 @@ def format_title(title: str, categories, tag_map, order=None):
     order = order or list(tag_map)
     tags = [tag_map[c] for c in order if c in categories and c in tag_map]
     return " ".join(tags + [title]) if tags else title
+
+
+def strip_ridi_set_note(title: str):
+    """신작/후속권 제목 뒤에 덧붙은 세트 행사 문구만 제거한다."""
+    title = clean_markdown(title)
+    patterns = [
+        r"\s*\d{1,2}/\d{1,2}\s*세트\s*오픈.*$",
+        r"\s*\d+(?:\s*[~\-]\s*\d+)?권\s*\([^)]*세트[^)]*\)\s*$",
+        r"\s*\d+(?:\s*[~\-]\s*\d+)?권\s*세트\s*$",
+    ]
+    for pattern in patterns:
+        title = re.sub(pattern, "", title).strip()
+    return title
 
 
 def add_item(groups, key, label, title):
@@ -146,7 +182,7 @@ def add_item(groups, key, label, title):
 
 def ridi_icon_map(text: str):
     labels = ["RIDI ONLY", "신작", "세트전", "후속권 업데이트"]
-    mapping = {}
+    mapping = dict(RIDI_LABEL_FALLBACK)
     for alt, url in MD_IMAGE_DETAIL_RE.findall(text):
         for label in labels:
             if label.lower() in alt.lower():
@@ -177,15 +213,20 @@ def parse_ridi(year: int, month: int):
                 if category:
                     categories.add(category)
 
-        # 세트전 자체만 있는 항목은 보고서에서 제외한다. 다만 신작/후속권에
-        # 세트전 아이콘이 같이 붙은 경우에는 출시 정보가 있으므로 남긴다.
-        if RIDI_SET_CATEGORY in categories and not ({"신작", "후속권 업데이트"} & categories):
+        # 세트전만 있는 항목은 제외. 신작/후속권에 세트 행사가 같이 붙은 경우는
+        # 출시 정보 자체는 남기되 세트 아이콘과 세트 행사 문구만 숨긴다.
+        release_categories = {"신작", "후속권 업데이트"} & categories
+        if RIDI_SET_CATEGORY in categories and not release_categories:
             pending = None
             return
 
+        raw_title = pending["title"]
+        if RIDI_SET_CATEGORY in categories and release_categories:
+            raw_title = strip_ridi_set_note(raw_title)
+
         shown_categories = categories - {RIDI_SET_CATEGORY}
         title = format_title(
-            pending["title"],
+            raw_title,
             shown_categories,
             RIDI_CATEGORY_TAGS,
             RIDI_CATEGORY_ORDER,
@@ -236,9 +277,7 @@ def parse_ridi(year: int, month: int):
 
 
 def find_aladin_calendar(month: int):
-    r = requests.get(ALADIN_LIST_URL, headers=HEADERS, timeout=30)
-    r.raise_for_status()
-    soup = BeautifulSoup(r.text, "html.parser")
+    soup = BeautifulSoup(fetch_aladin_html(ALADIN_LIST_URL), "html.parser")
 
     candidates = []
     for a in soup.find_all("a", href=True):
@@ -249,6 +288,8 @@ def find_aladin_calendar(month: int):
         href = urljoin(ALADIN_LIST_URL, a["href"])
         event_m = re.search(r"[?&]EventId=(\d+)", href, re.I)
         event_id = int(event_m.group(1)) if event_m else 0
+        if event_id:
+            href = f"https://mall.aladin.co.kr/events/wevent.aspx?EventId={event_id}"
         candidates.append((event_id, href))
 
     if not candidates:
@@ -281,9 +322,7 @@ def aladin_icon_map(soup: BeautifulSoup):
 def parse_aladin(year: int, month: int):
     """알라딘 캘린더 HTML의 출시일 박스에서 제목과 구분 아이콘을 읽는다."""
     url = find_aladin_calendar(month)
-    r = requests.get(url, headers=HEADERS, timeout=30)
-    r.raise_for_status()
-    soup = BeautifulSoup(r.text, "html.parser")
+    soup = BeautifulSoup(fetch_aladin_html(url), "html.parser")
     icon_map = aladin_icon_map(soup)
     groups = {}
 

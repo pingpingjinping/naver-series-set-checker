@@ -27,7 +27,33 @@ HEADERS = {
 JINA_HEADERS = {"User-Agent": "Mozilla/5.0"}
 
 MD_IMAGE_RE = re.compile(r"!\[[^\]]*\]\([^)]*\)")
+MD_IMAGE_DETAIL_RE = re.compile(r"!\[([^\]]*)\]\(([^)]+)\)")
 MD_LINK_RE = re.compile(r"\[([^\]]+)\]\([^)]*\)")
+
+RIDI_CATEGORY_ORDER = ["RIDI ONLY", "신작", "후속권 업데이트"]
+RIDI_CATEGORY_TAGS = {
+    "RIDI ONLY": "⭐ [RIDI ONLY]",
+    "신작": "🆕 [신작]",
+    "후속권 업데이트": "🔄 [후속권]",
+}
+RIDI_SET_CATEGORY = "세트전"
+
+ALADIN_CATEGORY_TAGS = {
+    "알라딘 독점": "⭐ [알라딘 독점]",
+    "신간": "🆕 [신간]",
+    "후속권 업데이트": "🔄 [후속권]",
+    "후속권": "🔄 [후속권]",
+    "신규 연재 업데이트": "✨ [신규 연재]",
+    "신규 연재": "✨ [신규 연재]",
+}
+ALADIN_SET_CATEGORY = "특가 세트"
+ALADIN_LABEL_FALLBACK = {
+    "2019_monthC_label1.png": "신간",
+    "2019_monthC_label2.png": "특가 세트",
+    "2019_monthC_label3.png": "후속권 업데이트",
+    "2019_monthC_label4.png": "알라딘 독점",
+    "2019_monthC_label5.png": "신규 연재 업데이트",
+}
 
 
 def post_discord(content: str):
@@ -76,12 +102,38 @@ def clean_markdown(text: str):
     return text.strip()
 
 
+def image_key(url: str):
+    try:
+        return urlsplit(url).path.rsplit("/", 1)[-1]
+    except Exception:
+        return url
+
+
+def format_title(title: str, categories, tag_map, order=None):
+    title = clean_markdown(title)
+    if not title:
+        return ""
+    categories = set(categories or [])
+    order = order or list(tag_map)
+    tags = [tag_map[c] for c in order if c in categories and c in tag_map]
+    return " ".join(tags + [title]) if tags else title
+
+
 def add_item(groups, key, label, title):
     title = clean_markdown(title)
     if not title:
         return
     lowered = title.lower()
-    if lowered in {"image", "신작", "세트전", "후속권 업데이트", "신규 연재 업데이트"}:
+    if lowered in {
+        "image",
+        "신작",
+        "세트전",
+        "후속권 업데이트",
+        "신규 연재 업데이트",
+        "신간",
+        "후속권",
+        "특가 세트",
+    }:
         return
     if title.startswith(("RIDI ONLY", "알라딘 독점")) and len(title) < 20:
         return
@@ -92,34 +144,91 @@ def add_item(groups, key, label, title):
         groups[key]["titles"].append(title)
 
 
+def ridi_icon_map(text: str):
+    labels = ["RIDI ONLY", "신작", "세트전", "후속권 업데이트"]
+    mapping = {}
+    for alt, url in MD_IMAGE_DETAIL_RE.findall(text):
+        for label in labels:
+            if label.lower() in alt.lower():
+                mapping[image_key(url)] = label
+                break
+    return mapping
+
+
 def parse_ridi(year: int, month: int):
     text = jina_text(RIDI_URL)
+    icon_map = ridi_icon_map(text)
     groups = {}
     current = None
+    pending = None
 
     date_re = re.compile(r"^#{0,6}\s*(\d{1,2})\.(\d{1,2})\.\(([^)]+)\)\s*$")
     bullet_re = re.compile(r"^\s*[-*]\s+(.+?)\s*$")
 
+    def flush_pending():
+        nonlocal pending
+        if not pending:
+            return
+
+        categories = set()
+        for meta_line in pending["meta"]:
+            for _, image_url in MD_IMAGE_DETAIL_RE.findall(meta_line):
+                category = icon_map.get(image_key(image_url))
+                if category:
+                    categories.add(category)
+
+        # 세트전 자체만 있는 항목은 보고서에서 제외한다. 다만 신작/후속권에
+        # 세트전 아이콘이 같이 붙은 경우에는 출시 정보가 있으므로 남긴다.
+        if RIDI_SET_CATEGORY in categories and not ({"신작", "후속권 업데이트"} & categories):
+            pending = None
+            return
+
+        shown_categories = categories - {RIDI_SET_CATEGORY}
+        title = format_title(
+            pending["title"],
+            shown_categories,
+            RIDI_CATEGORY_TAGS,
+            RIDI_CATEGORY_ORDER,
+        )
+        add_item(
+            groups,
+            pending["day"],
+            f"{month}/{pending['day']} ({pending['weekday']})",
+            title,
+        )
+        pending = None
+
     for raw in text.splitlines():
         line = raw.strip()
+        if line == "캘린더 안내":
+            flush_pending()
+            break
+
         m = date_re.match(line)
         if m:
+            flush_pending()
             m_month = int(m.group(1))
             day = int(m.group(2))
             weekday = m.group(3).strip()
             current = (m_month, day, weekday)
             continue
 
-        if not current or current[0] != month:
-            continue
-
         b = bullet_re.match(line)
-        if not b:
+        if b:
+            flush_pending()
+            if current and current[0] == month:
+                pending = {
+                    "day": current[1],
+                    "weekday": current[2],
+                    "title": b.group(1),
+                    "meta": [],
+                }
             continue
 
-        day = current[1]
-        weekday = current[2]
-        add_item(groups, day, f"{month}/{day} ({weekday})", b.group(1))
+        if pending:
+            pending["meta"].append(line)
+
+    flush_pending()
 
     if not groups:
         raise ValueError("리디 이번 달 출시작을 파싱하지 못했습니다.")
@@ -147,12 +256,35 @@ def find_aladin_calendar(month: int):
     return max(candidates, key=lambda x: x[0])[1]
 
 
+def aladin_icon_map(soup: BeautifulSoup):
+    mapping = dict(ALADIN_LABEL_FALLBACK)
+    labels = [
+        "알라딘 독점",
+        "신간",
+        "후속권 업데이트",
+        "후속권",
+        "신규 연재 업데이트",
+        "신규 연재",
+        "특가 세트",
+    ]
+    for img in soup.find_all("img", src=True):
+        alt = (img.get("alt") or "").strip()
+        if not alt:
+            continue
+        for label in labels:
+            if label in alt:
+                mapping[image_key(img["src"])] = label
+                break
+    return mapping
+
+
 def parse_aladin(year: int, month: int):
-    """알라딘 캘린더 HTML의 출시일 박스에서 제목 열만 직접 읽는다."""
+    """알라딘 캘린더 HTML의 출시일 박스에서 제목과 구분 아이콘을 읽는다."""
     url = find_aladin_calendar(month)
     r = requests.get(url, headers=HEADERS, timeout=30)
     r.raise_for_status()
     soup = BeautifulSoup(r.text, "html.parser")
+    icon_map = aladin_icon_map(soup)
     groups = {}
 
     for box in soup.select("dl.monthC_comicbox_book"):
@@ -168,9 +300,23 @@ def parse_aladin(year: int, month: int):
         if day < 1 or day > 31:
             continue
 
-        for cell in box.select("td.monthC_comicbox_text1"):
+        for row in box.select("table.monthC_comicbox_table tr"):
+            cell = row.select_one("td.monthC_comicbox_text1")
+            if not cell:
+                continue
             title = cell.get_text(" ", strip=True)
-            add_item(groups, day, f"{month}/{day} ({weekday})", title)
+
+            category = None
+            icon = row.find("img", class_="monthC_label_s")
+            if icon and icon.get("src"):
+                category = icon_map.get(image_key(icon["src"]))
+
+            if category == ALADIN_SET_CATEGORY:
+                continue
+
+            categories = {category} if category else set()
+            rendered = format_title(title, categories, ALADIN_CATEGORY_TAGS)
+            add_item(groups, day, f"{month}/{day} ({weekday})", rendered)
 
     if not groups:
         raise ValueError("알라딘 이번 달 출시작을 파싱하지 못했습니다.")

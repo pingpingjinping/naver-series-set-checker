@@ -13,7 +13,7 @@ SOURCE = os.environ.get("SOURCE", "both").strip().lower() or "both"
 KST = ZoneInfo("Asia/Seoul")
 
 RIDI_URL = "https://ridibooks.com/event/11339"
-ALADIN_LIST_URL = "https://mall.aladin.co.kr/events/wevent_main_ebook.aspx?CID=38416"
+ALADIN_LIST_URL = "https://www.aladin.co.kr/events/wevent_main_ebook.aspx?CID=38416"
 ALADIN_CALENDAR_RE = re.compile(r"(?P<month>\d{1,2})월\s*eBook\s*만화\s*출간\s*일정\s*캘린더", re.I)
 
 HEADERS = {
@@ -99,20 +99,40 @@ def jina_text(url: str):
     raise last_error
 
 
+def aladin_url_candidates(url: str):
+    """www/mall 두 호스트를 모두 시도할 수 있게 후보 URL을 만든다."""
+    candidates = [url]
+    parts = urlsplit(url)
+    host = (parts.hostname or "").lower()
+    if host == "www.aladin.co.kr":
+        candidates.append(urlunsplit(parts._replace(netloc="mall.aladin.co.kr")))
+    elif host == "mall.aladin.co.kr":
+        candidates.append(urlunsplit(parts._replace(netloc="www.aladin.co.kr")))
+    return list(dict.fromkeys(candidates))
+
+
 def fetch_aladin_html(url: str):
-    """알라딘이 간헐적으로 특정 UA에 403을 주므로 헤더를 바꿔 재시도한다."""
+    """GitHub Actions에서 알라딘 403이 나면 호스트/헤더를 바꿔 재시도한다."""
     last_error = None
-    header_options = [JINA_HEADERS, {}, HEADERS]
+    browser_headers = dict(HEADERS)
+    browser_headers.update({
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
+        "Referer": "https://www.aladin.co.kr/",
+        "Cache-Control": "no-cache",
+    })
+    header_options = [browser_headers, HEADERS, JINA_HEADERS, {}]
+
     for attempt in range(3):
-        for headers in header_options:
-            try:
-                r = requests.get(url, headers=headers, timeout=30)
-                r.raise_for_status()
-                return r.text
-            except Exception as exc:
-                last_error = exc
+        for candidate in aladin_url_candidates(url):
+            for headers in header_options:
+                try:
+                    r = requests.get(candidate, headers=headers, timeout=30)
+                    r.raise_for_status()
+                    return r.text
+                except Exception as exc:
+                    last_error = exc
         if attempt < 2:
-            time.sleep(1.2 * (attempt + 1))
+            time.sleep(1.5 * (attempt + 1))
     raise last_error
 
 
@@ -289,7 +309,7 @@ def find_aladin_calendar(month: int):
         event_m = re.search(r"[?&]EventId=(\d+)", href, re.I)
         event_id = int(event_m.group(1)) if event_m else 0
         if event_id:
-            href = f"https://mall.aladin.co.kr/events/wevent.aspx?EventId={event_id}"
+            href = f"https://www.aladin.co.kr/events/wevent.aspx?EventId={event_id}"
         candidates.append((event_id, href))
 
     if not candidates:

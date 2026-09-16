@@ -21,32 +21,37 @@ jobs:
           python-version: "3.12"
       - name: Install dependencies
         run: pip install -r requirements.txt
-      - name: Inspect source markup
+      - name: Inspect Ridi badges
         run: |
           python - <<'PY'
-          import requests
+          import re
+          from collections import Counter
           import monthly_release_report as m
 
           text = m.jina_text(m.RIDI_URL)
-          print('RIDI ICON MAP', m.ridi_icon_map(text))
           lines = text.splitlines()
-          for needle in ['RIDI ONLY', '보이시한 여자친구가 너무 귀여워']:
-              print('\n===', needle)
-              hits = [i for i, line in enumerate(lines) if needle in line]
-              print('hits', hits[:5])
-              for i in hits[:2]:
-                  for j in range(max(0, i-2), min(len(lines), i+8)):
-                      print(f'{j}: {lines[j]}')
+          print('--- FIRST 60 LINES ---')
+          for i, line in enumerate(lines[:60]):
+              print(f'{i}: {line}')
 
-          url = m.ALADIN_LIST_URL
-          for label, headers in [
-              ('none', {}),
-              ('mozilla', {'User-Agent':'Mozilla/5.0'}),
-              ('browser', m.HEADERS),
-          ]:
-              try:
-                  r=requests.get(url,headers=headers,timeout=30)
-                  print('ALADIN', label, r.status_code, len(r.content), repr(r.text[:100]))
-              except Exception as e:
-                  print('ALADIN', label, 'ERR', repr(e))
+          bullet = re.compile(r'^\s*[-*]\s+(.+?)\s*$')
+          current_title = None
+          combos = Counter()
+          examples = {}
+          for line in lines:
+              b = bullet.match(line.strip())
+              if b:
+                  current_title = m.clean_markdown(b.group(1))
+                  continue
+              imgs = m.MD_IMAGE_DETAIL_RE.findall(line)
+              if current_title and imgs:
+                  keys = tuple(m.image_key(url) for _, url in imgs)
+                  if keys:
+                      combos[keys] += 1
+                      examples.setdefault(keys, current_title)
+                      current_title = None
+
+          print('\n--- BADGE COMBOS ---')
+          for keys, count in combos.most_common():
+              print(count, keys, 'EXAMPLE=', examples[keys])
           PY

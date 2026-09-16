@@ -1,6 +1,10 @@
 import price_watch as pw
 
 
+# Discord 알림의 관리 링크는 현재 WalnutPi가 호출하는 전용 가격 워크플로로 보냅니다.
+pw.ACTIONS_URL = "https://github.com/pingpingjinping/naver-series-set-checker/actions/workflows/price.yml"
+
+
 def sale_change_status_line(prev: dict, current: dict):
     old_sale = prev.get("sale_active") if "sale_active" in prev else None
     new_sale = current.get("sale_active")

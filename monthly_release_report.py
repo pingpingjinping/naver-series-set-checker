@@ -2,7 +2,7 @@ import os
 import re
 import time
 from datetime import datetime
-from urllib.parse import urljoin
+from urllib.parse import urljoin, urlsplit, urlunsplit
 from zoneinfo import ZoneInfo
 
 import requests
@@ -36,8 +36,23 @@ def post_discord(content: str):
     r.raise_for_status()
 
 
+def jina_target_url(url: str):
+    """Jina Reader target을 http로 바꾼다.
+
+    GitHub Actions IP에서 r.jina.ai + https target 조합이 403을 반환하는 경우가 있지만,
+    같은 페이지를 http target으로 넘기면 Jina가 정상적으로 원본을 읽어준다.
+    원본 페이지 링크 자체는 계속 https를 사용한다.
+    """
+    parts = urlsplit(url)
+    if parts.scheme in {"http", "https"}:
+        parts = parts._replace(scheme="http")
+        return urlunsplit(parts)
+    return url
+
+
 def jina_text(url: str):
-    reader_url = "https://r.jina.ai/" + url
+    target = jina_target_url(url)
+    reader_url = "https://r.jina.ai/" + target
     r = requests.get(reader_url, headers=HEADERS, timeout=45)
     r.raise_for_status()
     return r.text

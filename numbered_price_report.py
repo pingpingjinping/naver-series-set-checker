@@ -62,7 +62,7 @@ def main():
                 region_text = f" · {region}" if region else ""
                 lines.append(f"**#{i} · {title}**")
                 lines.append(f"현재: `{price}`{region_text}")
-                history = ih.history_low_lines(item, include_links=True).rstrip()
+                history = ih.history_low_lines(item, include_links=False).rstrip()
                 if history:
                     lines.extend(history.splitlines())
             else:

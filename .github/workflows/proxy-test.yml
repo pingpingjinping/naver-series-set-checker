@@ -13,24 +13,29 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - name: Probe fallback URLs
-        shell: bash
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Verify parsers
         run: |
-          set +e
-          urls=(
-            'https://r.jina.ai/http://ridibooks.com/event/11339'
-            'https://r.jina.ai/http://www.aladin.co.kr/events/wevent.aspx?EventId=314299'
-            'https://r.jina.ai/http://mall.aladin.co.kr/events/wevent.aspx?EventId=314299'
-            'https://mall.aladin.co.kr/events/wevent.aspx?EventId=314299'
-          )
-          i=0
-          for url in "${urls[@]}"; do
-            i=$((i+1))
-            echo "===== $i $url"
-            code=$(curl -L -A 'Mozilla/5.0' -sS --max-time 30 -o /tmp/body "$url" -w '%{http_code}')
-            bytes=$(wc -c </tmp/body 2>/dev/null || echo 0)
-            echo "status=$code bytes=$bytes"
-            head -c 400 /tmp/body | tr '\n' ' '; echo
-            echo "date samples:"
-            grep -Eo '(^|[^0-9])[0-9]{1,2}\([^)]{1,4}\)|[0-9]{1,2}\.[0-9]{1,2}\.\([^)]{1,4}\)' /tmp/body | head -n 5 || true
-          done
+          python - <<'PY'
+          from datetime import datetime
+          from zoneinfo import ZoneInfo
+          import monthly_release_report as m
+
+          now = datetime.now(ZoneInfo('Asia/Seoul'))
+          for name, fn in [('ridi', m.parse_ridi), ('aladin', m.parse_aladin)]:
+              groups, url = fn(now.year, now.month)
+              total = sum(len(v['titles']) for v in groups.values())
+              print(f'{name}: groups={len(groups)} total={total} url={url}')
+              for day in sorted(groups)[:3]:
+                  print(day, groups[day]['label'], groups[day]['titles'][:3])
+          PY

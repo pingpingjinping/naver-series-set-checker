@@ -7,6 +7,7 @@ import requests
 from bs4 import BeautifulSoup
 
 RIDI_CALENDAR_URL = "https://ridibooks.com/event/11339"
+REPORT_ACTIONS_URL = "https://github.com/pingpingjinping/naver-series-set-checker/actions/workflows/monthly-release-report.yml"
 STATE_FILE = Path("ridi_calendar_state.json")
 DISCORD_WEBHOOK = os.environ.get("DISCORD_WEBHOOK", "").strip()
 
@@ -77,7 +78,8 @@ def post_discord(title: str):
     content = (
         "📚 **리디 만화 신간 캘린더 업데이트**\n\n"
         f"**{title}가 등록됐어**\n"
-        f"🔗 캘린더 보기\n<{RIDI_CALENDAR_URL}>"
+        f"🔗 캘린더 보기\n<{RIDI_CALENDAR_URL}>\n\n"
+        f"📋 이번 달 출시작 다시 보내기: <{REPORT_ACTIONS_URL}>"
     )
     r = requests.post(DISCORD_WEBHOOK, json={"content": content}, timeout=30)
     r.raise_for_status()

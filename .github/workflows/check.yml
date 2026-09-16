@@ -79,6 +79,7 @@ jobs:
       - name: Check prices
         env:
           DISCORD_WEBHOOK: ${{ secrets.PRICE_DISCORD_WEBHOOK }}
+          ITAD_API_KEY: ${{ secrets.ITAD_API_KEY }}
           SEND_CURRENT_REPORT: "0"
         run: python price_watch_runner.py
 

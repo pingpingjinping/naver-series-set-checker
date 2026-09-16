@@ -3,8 +3,9 @@ import time
 import monthly_release_report as core
 
 
-NORMAL_MARKER = "▫"
-EXCLUSIVE_MARKER = "▪"
+# Discord가 ▪/▫를 이모지 이미지로 바꾸지 않도록 text variation selector를 붙인다.
+NORMAL_MARKER = "▫︎"
+EXCLUSIVE_MARKER = "▪︎"
 
 
 def compact_sections(site_name: str, titles):

@@ -21,20 +21,32 @@ jobs:
           python-version: "3.12"
       - name: Install dependencies
         run: pip install -r requirements.txt
-      - name: Verify parsers
+      - name: Inspect source markup
         run: |
           python - <<'PY'
-          from datetime import datetime
-          from zoneinfo import ZoneInfo
+          import requests
           import monthly_release_report as m
 
-          now = datetime.now(ZoneInfo('Asia/Seoul'))
-          for name, fn in [('ridi', m.parse_ridi), ('aladin', m.parse_aladin)]:
-              groups, url = fn(now.year, now.month)
-              titles = [title for group in groups.values() for title in group['titles']]
-              print(f'{name}: days={len(groups)} total={len(titles)} url={url}')
-              print('tagged=', sum(1 for t in titles if t.startswith(('⭐', '🆕', '🔄', '✨'))))
-              print('set-tag-visible=', sum(1 for t in titles if '[세트' in t or '[특가 세트' in t))
-              for day in sorted(groups)[:3]:
-                  print(day, groups[day]['label'], groups[day]['titles'][:8])
+          text = m.jina_text(m.RIDI_URL)
+          print('RIDI ICON MAP', m.ridi_icon_map(text))
+          lines = text.splitlines()
+          for needle in ['RIDI ONLY', '보이시한 여자친구가 너무 귀여워']:
+              print('\n===', needle)
+              hits = [i for i, line in enumerate(lines) if needle in line]
+              print('hits', hits[:5])
+              for i in hits[:2]:
+                  for j in range(max(0, i-2), min(len(lines), i+8)):
+                      print(f'{j}: {lines[j]}')
+
+          url = m.ALADIN_LIST_URL
+          for label, headers in [
+              ('none', {}),
+              ('mozilla', {'User-Agent':'Mozilla/5.0'}),
+              ('browser', m.HEADERS),
+          ]:
+              try:
+                  r=requests.get(url,headers=headers,timeout=30)
+                  print('ALADIN', label, r.status_code, len(r.content), repr(r.text[:100]))
+              except Exception as e:
+                  print('ALADIN', label, 'ERR', repr(e))
           PY

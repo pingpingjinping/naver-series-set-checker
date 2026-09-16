@@ -71,7 +71,7 @@ def clean_markdown(text: str):
     text = MD_IMAGE_RE.sub("", text or "")
     text = MD_LINK_RE.sub(r"\1", text)
     text = re.sub(r"^\s*#{1,6}\s*", "", text)
-    text = re.sub(r"[*_`~]+", "", text)
+    text = re.sub(r"[*_`]+", "", text)
     text = re.sub(r"\s+", " ", text).strip(" |\t")
     return text.strip()
 

@@ -43,6 +43,17 @@
       "base_discount": 0,
       "base_discount_label": "",
       "url": "https://store.steampowered.com/app/886820/Nelke__the_Legendary_Alchemists_Ateliers_of_the_New_World/"
+    },
+    "https://store.steampowered.com/bundle/20340/Atelier_Mysterious_Trilogy_Deluxe_Pack/": {
+      "title": "アトリエ ～不思議の錬金術士 トリロジー～ DX",
+      "price": "¥7,524 (-50%)",
+      "region": "일본",
+      "discount_end": "2026-09-29 02:00 KST",
+      "sale_active": true,
+      "discount_percent": 50,
+      "base_discount": 5,
+      "base_discount_label": "번들 할인",
+      "url": "https://store.steampowered.com/bundle/20340/Atelier_Mysterious_Trilogy_Deluxe_Pack/"
     }
   }
 }

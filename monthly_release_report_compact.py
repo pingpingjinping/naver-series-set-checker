@@ -44,9 +44,11 @@ def compact_titles(titles):
 
 def send_report(site_name: str, emoji: str, year: int, month: int, groups, source_url: str):
     total = sum(len(v["titles"]) for v in groups.values())
-    # 리디는 파랑, 알라딘은 주황으로 통일한다.
+
+    # 맨 위 제목은 책 아이콘, 날짜 구분은 작은 색 다이아를 사용한다.
+    header_icon = "📘" if site_name == "리디" else "📙"
     site_icon = "🔹" if site_name == "리디" else "🔸"
-    base_header = f"{site_icon} **{site_name} {year}년 {month}월 만화 출시 일정**\n총 **{total}개**"
+    base_header = f"{header_icon} **{site_name} {year}년 {month}월 만화 출시 일정**\n총 **{total}개**"
     footer = f"\n📅 원본 캘린더: <{source_url}>"
 
     messages = []
@@ -54,13 +56,14 @@ def send_report(site_name: str, emoji: str, year: int, month: int, groups, sourc
 
     def start_new(context=""):
         nonlocal current
-        if current.strip() != base_header:
+        if current.strip():
             messages.append(current.rstrip())
-        current = base_header + "\n" + context
+        # 월간 보고서 제목/총 개수는 첫 메시지에만 표시한다.
+        current = context
 
     for day in sorted(groups):
         group = groups[day]
-        # 날짜마다 사이트 아이콘을 넣어 긴 보고서에서도 출처를 바로 구분한다.
+        # 날짜마다 작은 사이트 아이콘을 넣어 긴 보고서에서도 출처를 바로 구분한다.
         day_header = f"\n**{site_icon} {group['label']}**\n"
 
         if len(current) + len(day_header) + len(footer) > 1900:
@@ -78,13 +81,11 @@ def send_report(site_name: str, emoji: str, year: int, month: int, groups, sourc
     current += footer
     messages.append(current.rstrip())
 
-    for i, message in enumerate(messages, 1):
-        if len(messages) > 1:
-            message = message.replace(base_header, base_header + f" · {i}/{len(messages)}", 1)
+    for message in messages:
         core.post_discord(message)
         time.sleep(0.45)
 
-    print(f"{site_name}: {total}개 / Discord {len(messages)}개 메시지 전송 (날짜별 통합 목록, 독점 우선)")
+    print(f"{site_name}: {total}개 / Discord {len(messages)}개 메시지 전송 (날짜별 통합 목록, 독점 우선, 제목 1회)")
 
 
 core.send_report = send_report

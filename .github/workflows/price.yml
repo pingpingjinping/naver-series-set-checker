@@ -31,6 +31,9 @@ jobs:
           SEND_CURRENT_REPORT: "0"
         run: python price_watch.py
 
+      - name: Debug STOVE sale fields
+        run: python debug_stove_sale.py
+
       - name: Save state
         run: |
           if git diff --quiet -- price_state.json; then

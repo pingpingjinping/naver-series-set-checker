@@ -5,6 +5,10 @@
       "price": "₩100,000 (-20%)",
       "region": "한국",
       "discount_end": "",
+      "sale_active": false,
+      "discount_percent": 20,
+      "base_discount": 20,
+      "base_discount_label": "컬렉션 할인",
       "url": "https://store.onstove.com/ko/games/4067"
     },
     "https://store.onstove.com/ko/games/4692": {
@@ -12,6 +16,10 @@
       "price": "₩82,800 (-10%)",
       "region": "한국",
       "discount_end": "",
+      "sale_active": false,
+      "discount_percent": 10,
+      "base_discount": 10,
+      "base_discount_label": "컬렉션 할인",
       "url": "https://store.onstove.com/ko/games/4692"
     },
     "https://store.steampowered.com/bundle/13066/Atelier_Dusk_Trilogy_Deluxe_Pack/": {
@@ -19,7 +27,22 @@
       "price": "¥6,018 (-60%)",
       "region": "일본",
       "discount_end": "2026-09-29 02:00 KST",
+      "sale_active": true,
+      "discount_percent": 60,
+      "base_discount": 5,
+      "base_discount_label": "번들 할인",
       "url": "https://store.steampowered.com/bundle/13066/Atelier_Dusk_Trilogy_Deluxe_Pack/"
+    },
+    "https://store.steampowered.com/app/42670/Singularity/": {
+      "title": "Singularity™",
+      "price": "₩13,830 (-67%)",
+      "region": "한국",
+      "discount_end": "2026-09-18 02:00 KST",
+      "sale_active": true,
+      "discount_percent": 67,
+      "base_discount": 0,
+      "base_discount_label": "",
+      "url": "https://store.steampowered.com/app/42670/Singularity/"
     }
   }
 }

@@ -73,3 +73,39 @@ GitHub Actions cron은 정확히 09:00:00에 시작된다는 보장은 없고 �
 ## 수동 테스트
 
 Actions 화면에서 `Run workflow`를 누르면 언제든 즉시 확인할 수 있습니다.
+
+---
+
+## 가격 변동 체크 상품 추가/삭제
+
+가격을 추적하고 싶은 상품은 저장소 루트의 `price_urls.txt`에 **상품 URL을 한 줄에 하나씩** 넣으면 됩니다.
+
+예:
+
+```text
+https://store.onstove.com/ko/games/4067
+https://store.steampowered.com/app/42670/Singularity/
+https://store.steampowered.com/bundle/13066/Atelier_Dusk_Trilogy_Deluxe_Pack/
+```
+
+현재 전용 파서가 있는 주소:
+
+- STOVE 게임/컬렉션: `https://store.onstove.com/.../games/상품번호`
+- Steam 일반 게임: `https://store.steampowered.com/app/앱번호/...`
+- Steam 번들: `https://store.steampowered.com/bundle/번들번호/...`
+
+빈 줄과 `#`으로 시작하는 줄은 무시합니다.
+
+상품을 빼고 싶으면 `price_urls.txt`에서 해당 URL 한 줄만 삭제하면 됩니다. `price_state.json`은 실행할 때 자동으로 갱신되므로 직접 수정할 필요 없습니다.
+
+새 URL을 처음 추가한 실행에서는 현재 가격을 **기준점으로만 저장하고 Discord 알림은 보내지 않습니다.** 이후 가격, 할인율, 세일 시작/종료, 할인 종료 시각 등이 바뀌면 Discord로 알림이 옵니다.
+
+Steam 번들과 STOVE 컬렉션처럼 기본적으로 항상 적용되는 할인은 기간 세일과 별도로 구분합니다. 따라서 상시 번들/컬렉션 할인만 있는 상태를 세일 시작으로 오판하지 않습니다.
+
+수동으로 바로 확인하려면 WalnutPi에서:
+
+```bash
+~/walnutpi_dispatch.sh price
+```
+
+또는 GitHub Actions의 `WalnutPi Price Watch` 워크플로를 직접 실행하면 됩니다.

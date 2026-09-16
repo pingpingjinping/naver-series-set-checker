@@ -8,6 +8,7 @@ import requests
 from bs4 import BeautifulSoup
 
 LIST_URL = "https://www.aladin.co.kr/events/wevent_main_ebook.aspx?CID=38416"
+REPORT_ACTIONS_URL = "https://github.com/pingpingjinping/naver-series-set-checker/actions/workflows/monthly-release-report.yml"
 STATE_FILE = Path("aladin_calendar_state.json")
 DISCORD_WEBHOOK = os.environ.get("DISCORD_WEBHOOK", "").strip()
 HEADERS = {
@@ -103,7 +104,8 @@ def main():
         post_discord(
             "📚 **알라딘 eBook 만화 출간 일정 캘린더 업데이트**\n\n"
             f"**{current['month']}월 eBook 만화 출간 일정 캘린더가 등록됐어**\n"
-            f"<{current['url']}>"
+            f"<{current['url']}>\n\n"
+            f"📋 이번 달 출시작 다시 보내기: <{REPORT_ACTIONS_URL}>"
         )
         print(f"캘린더 변경 감지: {previous} -> {current}")
     else:

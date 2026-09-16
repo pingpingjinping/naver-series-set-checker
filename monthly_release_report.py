@@ -24,6 +24,7 @@ HEADERS = {
     ),
     "Accept-Language": "ko-KR,ko;q=0.9,en;q=0.8",
 }
+JINA_HEADERS = {"User-Agent": "Mozilla/5.0"}
 
 MD_IMAGE_RE = re.compile(r"!\[[^\]]*\]\([^)]*\)")
 MD_LINK_RE = re.compile(r"\[([^\]]+)\]\([^)]*\)")
@@ -39,8 +40,8 @@ def post_discord(content: str):
 def jina_target_url(url: str):
     """Jina Reader target을 http로 바꾼다.
 
-    GitHub Actions IP에서 r.jina.ai + https target 조합이 403을 반환하는 경우가 있지만,
-    같은 페이지를 http target으로 넘기면 Jina가 정상적으로 원본을 읽어준다.
+    GitHub Actions에서 https target 또는 완전한 브라우저 헤더를 붙이면
+    Cloudflare 403이 날 수 있어서, Jina에는 http target + 최소 UA만 사용한다.
     원본 페이지 링크 자체는 계속 https를 사용한다.
     """
     parts = urlsplit(url)
@@ -53,9 +54,17 @@ def jina_target_url(url: str):
 def jina_text(url: str):
     target = jina_target_url(url)
     reader_url = "https://r.jina.ai/" + target
-    r = requests.get(reader_url, headers=HEADERS, timeout=45)
-    r.raise_for_status()
-    return r.text
+    last_error = None
+    for attempt in range(3):
+        try:
+            r = requests.get(reader_url, headers=JINA_HEADERS, timeout=45)
+            r.raise_for_status()
+            return r.text
+        except Exception as exc:
+            last_error = exc
+            if attempt < 2:
+                time.sleep(1.5 * (attempt + 1))
+    raise last_error
 
 
 def clean_markdown(text: str):

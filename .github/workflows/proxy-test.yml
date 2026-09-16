@@ -13,27 +13,26 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
       - name: Install dependencies
-        run: pip install requests beautifulsoup4
-      - name: Inspect Aladin item HTML
+        run: pip install -r requirements.txt
+      - name: Verify parsers
         run: |
           python - <<'PY'
-          import requests
-          from bs4 import BeautifulSoup
-          url='https://mall.aladin.co.kr/events/wevent.aspx?EventId=314299'
-          r=requests.get(url,headers={'User-Agent':'Mozilla/5.0'},timeout=30)
-          print('status',r.status_code,len(r.content))
-          soup=BeautifulSoup(r.text,'html.parser')
-          node=soup.find(string=lambda s: s and '요리 군과 다시 만날 수는 없어' in s)
-          print('node=',repr(node))
-          if node:
-              p=node.parent
-              for level in range(5):
-                  print('\nLEVEL',level,'tag=',p.name,'class=',p.get('class'),'id=',p.get('id'))
-                  print(str(p)[:5000])
-                  p=p.parent
+          from datetime import datetime
+          from zoneinfo import ZoneInfo
+          import monthly_release_report as m
+
+          now = datetime.now(ZoneInfo('Asia/Seoul'))
+          for name, fn in [('ridi', m.parse_ridi), ('aladin', m.parse_aladin)]:
+              groups, url = fn(now.year, now.month)
+              total = sum(len(v['titles']) for v in groups.values())
+              print(f'{name}: groups={len(groups)} total={total} url={url}')
+              for day in sorted(groups)[:3]:
+                  print(day, groups[day]['label'], groups[day]['titles'][:5])
           PY

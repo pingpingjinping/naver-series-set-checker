@@ -128,7 +128,7 @@ def find_discount_end_value(obj, parent_key=""):
         "discountfinishdate",
         "discountfinishdt",
     }
-    nested_end_keys = {"enddate", "enddt", "endat", "endtime", "expiration"}
+    nested_end_keys = {"end", "enddate", "enddt", "endat", "endtime", "expiration"}
 
     if isinstance(obj, dict):
         parent_norm = re.sub(r"[^a-z0-9]", "", str(parent_key).lower())

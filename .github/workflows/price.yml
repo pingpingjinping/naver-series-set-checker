@@ -29,7 +29,7 @@ jobs:
         env:
           DISCORD_WEBHOOK: ${{ secrets.PRICE_DISCORD_WEBHOOK }}
           SEND_CURRENT_REPORT: "0"
-        run: python price_watch.py
+        run: python price_watch_runner.py
 
       - name: Save state
         run: |

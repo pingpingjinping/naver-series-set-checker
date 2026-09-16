@@ -24,18 +24,27 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
-      - name: Verify parsers
+      - name: Compare fetch clients
+        shell: bash
         run: |
-          python - <<'PY'
-          from datetime import datetime
-          from zoneinfo import ZoneInfo
-          import monthly_release_report as m
+          set +e
+          URL='https://r.jina.ai/http://ridibooks.com/event/11339'
+          echo '--- curl ---'
+          curl -L -A 'Mozilla/5.0' -sS --max-time 30 -o /tmp/curl-body "$URL" -w 'status=%{http_code} bytes=%{size_download}\n'
+          head -c 120 /tmp/curl-body; echo
 
-          now = datetime.now(ZoneInfo('Asia/Seoul'))
-          for name, fn in [('ridi', m.parse_ridi), ('aladin', m.parse_aladin)]:
-              groups, url = fn(now.year, now.month)
-              total = sum(len(v['titles']) for v in groups.values())
-              print(f'{name}: groups={len(groups)} total={total} url={url}')
-              for day in sorted(groups)[:3]:
-                  print(day, groups[day]['label'], groups[day]['titles'][:3])
+          echo '--- requests default ---'
+          python - <<'PY'
+          import requests
+          u='https://r.jina.ai/http://ridibooks.com/event/11339'
+          for label, headers in [
+              ('none', {}),
+              ('mozilla', {'User-Agent':'Mozilla/5.0'}),
+              ('browser', {'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36', 'Accept-Language':'ko-KR,ko;q=0.9,en;q=0.8'}),
+          ]:
+              try:
+                  r=requests.get(u,headers=headers,timeout=30)
+                  print(label, r.status_code, len(r.content), repr(r.text[:120]))
+              except Exception as e:
+                  print(label, 'ERR', repr(e))
           PY

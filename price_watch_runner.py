@@ -1,8 +1,24 @@
 import price_watch as pw
+import itad_history as ih
 
 
 # Discord 알림의 관리 링크는 현재 WalnutPi가 호출하는 전용 가격 워크플로로 보냅니다.
 pw.ACTIONS_URL = "https://github.com/pingpingjinping/naver-series-set-checker/actions/workflows/price.yml"
+
+
+# 기존 가격 파서는 그대로 두고 Steam 항목에만 ITAD의 해당 지역 Steam 역대 최저가를 덧붙입니다.
+_original_parse_page = pw.parse_page
+
+
+def parse_page_with_history(url: str):
+    item = _original_parse_page(url)
+    info = ih.fetch_steam_history_low(url, item.get("region", ""))
+    if info:
+        item.update(info)
+    return item
+
+
+pw.parse_page = parse_page_with_history
 
 
 def sale_change_status_line(prev: dict, current: dict):
@@ -35,6 +51,8 @@ def send_discord(index: int, prev: dict, current: dict, url: str):
     else:
         discount_line = ""
 
+    history_line = ih.history_low_lines(current, include_links=True)
+
     pw.post_discord(
         f"{pw.change_header(prev, current)}\n\n"
         f"**#{index} · {current['title']}**\n"
@@ -44,6 +62,7 @@ def send_discord(index: int, prev: dict, current: dict, url: str):
         f"{sale_change_status_line(prev, current)}"
         f"{pw.base_discount_line(current)}"
         f"{discount_line}"
+        f"{history_line}"
         f"<{url}>\n\n"
         f"⚙️ 가격 추적 관리: <{pw.ACTIONS_URL}>"
     )

@@ -222,10 +222,8 @@ def send_discord(new_items):
 
     for item in new_items:
         line = f"\n**{item['title']}**"
-        if item.get("discount"):
-            line += f"\n세트 할인: **{item['discount']}**"
         if item.get("discount_end"):
-            line += f"\n할인 종료: **{item['discount_end']}**"
+            line += f" (~{item['discount_end']})"
         line += "\n"
 
         if len(current) + len(line) > 1900:

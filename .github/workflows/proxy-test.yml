@@ -24,18 +24,20 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
-      - name: Verify parsers
+      - name: Inspect Aladin markdown
         run: |
           python - <<'PY'
-          from datetime import datetime
-          from zoneinfo import ZoneInfo
           import monthly_release_report as m
-
-          now = datetime.now(ZoneInfo('Asia/Seoul'))
-          for name, fn in [('ridi', m.parse_ridi), ('aladin', m.parse_aladin)]:
-              groups, url = fn(now.year, now.month)
-              total = sum(len(v['titles']) for v in groups.values())
-              print(f'{name}: groups={len(groups)} total={total} url={url}')
-              for day in sorted(groups)[:3]:
-                  print(day, groups[day]['label'], groups[day]['titles'][:3])
+          text = m.jina_text('https://www.aladin.co.kr/events/wevent.aspx?EventId=314299')
+          lines = text.splitlines()
+          needles = ['만화', '성인', '1(화)', '9(수)', '29(화)', '회사소개']
+          for needle in needles:
+              print('\n===== NEEDLE', needle)
+              hits = [i for i, line in enumerate(lines) if needle in line]
+              print('hits', hits[:10])
+              for i in hits[:3]:
+                  start=max(0,i-4); end=min(len(lines),i+10)
+                  for j in range(start,end):
+                      print(f'{j:04d}: {lines[j]}')
+                  print('---')
           PY

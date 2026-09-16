@@ -2,6 +2,15 @@ name: WalnutPi Aladin eBook Comic Calendar Watch
 
 on:
   workflow_dispatch:
+    inputs:
+      force_run:
+        description: "현재 scheduler mode와 무관하게 수동 실행"
+        required: false
+        default: false
+        type: boolean
+  schedule:
+    # 06:10 KST = 21:10 UTC (previous calendar day in UTC)
+    - cron: "10 21 * * *"
 
 permissions:
   contents: write
@@ -17,20 +26,63 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Decide scheduler source
+        id: scheduler
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          FORCE_RUN: ${{ inputs.force_run || false }}
+        run: |
+          mode="$(tr -d '[:space:]' < scheduler_mode.txt 2>/dev/null || true)"
+          if [ "$mode" != "pi" ] && [ "$mode" != "github" ]; then
+            echo "scheduler_mode.txt 값이 잘못되어 안전하게 pi로 처리합니다: '$mode'"
+            mode="pi"
+          fi
+
+          run="false"
+          reason=""
+
+          if [ "$FORCE_RUN" = "true" ]; then
+            run="true"
+            reason="manual force_run"
+          elif [ "$EVENT_NAME" = "schedule" ]; then
+            if [ "$mode" = "github" ]; then
+              run="true"
+              reason="GitHub schedule accepted"
+            else
+              reason="GitHub schedule ignored (mode=pi)"
+            fi
+          else
+            if [ "$mode" = "pi" ]; then
+              run="true"
+              reason="Pi workflow_dispatch accepted"
+            else
+              reason="Pi workflow_dispatch ignored (mode=github)"
+            fi
+          fi
+
+          echo "run=$run" >> "$GITHUB_OUTPUT"
+          echo "mode=$mode" >> "$GITHUB_OUTPUT"
+          echo "$reason"
+          echo "### Scheduler: $reason" >> "$GITHUB_STEP_SUMMARY"
+
       - name: Set up Python
+        if: ${{ steps.scheduler.outputs.run == 'true' }}
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
 
       - name: Install dependencies
+        if: ${{ steps.scheduler.outputs.run == 'true' }}
         run: pip install -r requirements.txt
 
       - name: Check Aladin ebook comic calendar
+        if: ${{ steps.scheduler.outputs.run == 'true' }}
         env:
           DISCORD_WEBHOOK: ${{ secrets.SERIES_DISCORD_WEBHOOK }}
         run: python aladin_calendar_watch.py
 
       - name: Save state
+        if: ${{ steps.scheduler.outputs.run == 'true' }}
         run: |
           if git diff --quiet -- aladin_calendar_state.json; then
             echo "aladin_calendar_state.json 변경 없음"

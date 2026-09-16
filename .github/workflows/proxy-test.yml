@@ -18,21 +18,19 @@ jobs:
         run: |
           set +e
           urls=(
-            'https://ridibooks.com/event/11339'
             'https://r.jina.ai/http://ridibooks.com/event/11339'
-            'https://api.allorigins.win/raw?url=https%3A%2F%2Fridibooks.com%2Fevent%2F11339'
-            'https://api.codetabs.com/v1/proxy?quest=https%3A%2F%2Fridibooks.com%2Fevent%2F11339'
-            'https://corsproxy.io/?url=https%3A%2F%2Fridibooks.com%2Fevent%2F11339'
-            'https://ridibooks-com.translate.goog/event/11339?_x_tr_sl=ko&_x_tr_tl=ko&_x_tr_hl=ko'
+            'https://r.jina.ai/http://www.aladin.co.kr/events/wevent.aspx?EventId=314299'
+            'https://r.jina.ai/http://mall.aladin.co.kr/events/wevent.aspx?EventId=314299'
             'https://mall.aladin.co.kr/events/wevent.aspx?EventId=314299'
-            'https://api.allorigins.win/raw?url=https%3A%2F%2Fmall.aladin.co.kr%2Fevents%2Fwevent.aspx%3FEventId%3D314299'
           )
           i=0
           for url in "${urls[@]}"; do
             i=$((i+1))
             echo "===== $i $url"
-            code=$(curl -L -A 'Mozilla/5.0' -sS --max-time 25 -o /tmp/body "$url" -w '%{http_code}')
+            code=$(curl -L -A 'Mozilla/5.0' -sS --max-time 30 -o /tmp/body "$url" -w '%{http_code}')
             bytes=$(wc -c </tmp/body 2>/dev/null || echo 0)
             echo "status=$code bytes=$bytes"
-            head -c 180 /tmp/body | tr '\n' ' '; echo
+            head -c 400 /tmp/body | tr '\n' ' '; echo
+            echo "date samples:"
+            grep -Eo '(^|[^0-9])[0-9]{1,2}\([^)]{1,4}\)|[0-9]{1,2}\.[0-9]{1,2}\.\([^)]{1,4}\)' /tmp/body | head -n 5 || true
           done

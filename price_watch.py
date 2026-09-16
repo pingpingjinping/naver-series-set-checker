@@ -83,10 +83,31 @@ def get_any(d, *keys):
     return None
 
 
+def result(
+    title,
+    price,
+    region="",
+    *,
+    discount_end="",
+    sale_active=None,
+    discount_percent=0,
+    base_discount=0,
+    base_discount_label="",
+):
+    return {
+        "title": title,
+        "price": price,
+        "region": region,
+        "discount_end": discount_end,
+        "sale_active": sale_active,
+        "discount_percent": int(discount_percent or 0),
+        "base_discount": int(base_discount or 0),
+        "base_discount_label": base_discount_label,
+    }
+
+
 def format_discount_end_datetime(dt: datetime):
     dt = dt.astimezone(KST)
-    # STOVE collection discounts often use year 2999/3000 as an effectively
-    # open-ended sentinel rather than a meaningful customer-facing deadline.
     if dt.year >= 2099:
         return "종료 예정 없음"
     return dt.strftime("%Y-%m-%d %H:%M KST")
@@ -97,7 +118,9 @@ def format_discount_end_value(value):
         return ""
 
     try:
-        if isinstance(value, (int, float)) or (isinstance(value, str) and re.fullmatch(r"\d+(?:\.\d+)?", value.strip())):
+        if isinstance(value, (int, float)) or (
+            isinstance(value, str) and re.fullmatch(r"\d+(?:\.\d+)?", value.strip())
+        ):
             ts = float(value)
             if ts > 100_000_000_000:
                 ts /= 1000.0
@@ -149,32 +172,61 @@ def find_discount_end_value(obj, parent_key=""):
     return None
 
 
-def parse_stove_page_discount_end(url: str):
+def parse_stove_page_info(url: str):
+    info = {
+        "discount_end": "",
+        "collection_discount": 0,
+        "is_collection": False,
+    }
     try:
         soup = BeautifulSoup(fetch(url), "html.parser")
         text = clean_text(soup.get_text(" ", strip=True))
     except Exception:
-        return ""
+        return info
+
+    info["is_collection"] = bool(
+        re.search(r"(?:\bCOLLECTION\b|컬렉션\s*(?:설명|할인|구매|에 포함))", text, re.I)
+    )
+
+    m = re.search(r"컬렉션\s*할인(?!\s*금액)\s*[-–]?\s*(\d{1,3})\s*%", text, re.I)
+    if m:
+        info["collection_discount"] = int(m.group(1))
 
     m = re.search(
         r"(\d{4})[.\-/](\d{1,2})[.\-/](\d{1,2})\s+"
-        r"(\d{1,2}):(\d{2})\s*\(UTC\s*([+-]\d{1,2})(?::?(\d{2}))?\)"
+        r"(\d{1,2}):(\d{2})\s*\((?:UTC\s*([+-]\d{1,2})(?::?(\d{2}))?|"
+        r"(KST|JST|EDT|EST|PDT|PST))\)"
         r"[^\d]{0,30}할인\s*종료",
         text,
         re.I,
     )
     if not m:
-        return ""
+        return info
 
     year, month, day, hour, minute = map(int, m.group(1, 2, 3, 4, 5))
-    offset_hour = int(m.group(6))
-    offset_minute = int(m.group(7) or 0)
-    sign = 1 if offset_hour >= 0 else -1
-    offset = timezone(timedelta(hours=offset_hour, minutes=sign * offset_minute))
+    if m.group(6):
+        offset_hour = int(m.group(6))
+        offset_minute = int(m.group(7) or 0)
+        sign = 1 if offset_hour >= 0 else -1
+        tz = timezone(timedelta(hours=offset_hour, minutes=sign * offset_minute))
+    else:
+        named = (m.group(8) or "").upper()
+        named_offsets = {
+            "KST": 9,
+            "JST": 9,
+            "EDT": -4,
+            "EST": -5,
+            "PDT": -7,
+            "PST": -8,
+        }
+        tz = timezone(timedelta(hours=named_offsets.get(named, 0)))
     try:
-        return format_discount_end_datetime(datetime(year, month, day, hour, minute, tzinfo=offset))
+        info["discount_end"] = format_discount_end_datetime(
+            datetime(year, month, day, hour, minute, tzinfo=tz)
+        )
     except ValueError:
-        return ""
+        pass
+    return info
 
 
 def find_stove_price_object(obj, product_no: int):
@@ -326,9 +378,9 @@ def parse_stove(url: str):
         raise ValueError("STOVE KR 상품 API 응답에 판매가가 없습니다.")
 
     try:
-        discount_rate_num = int(float(discount_rate or 0))
+        discount = int(float(discount_rate or 0))
     except (TypeError, ValueError):
-        discount_rate_num = 0
+        discount = 0
 
     title = get_any(product, "product_name", "productName")
     title_obj = product.get("title")
@@ -341,18 +393,56 @@ def parse_stove(url: str):
             title = f"STOVE 상품 {product_no}"
 
     price = f"₩{int(float(sales_price)):,}"
-    if discount_rate_num > 0:
-        price += f" (-{discount_rate_num}%)"
+    if discount > 0:
+        price += f" (-{discount}%)"
 
-    discount_end = ""
-    if discount_rate_num > 0:
-        discount_end = format_discount_end_value(find_discount_end_value(product))
-        if not discount_end:
-            discount_end = parse_stove_page_discount_end(url)
+    raw_end = find_discount_end_value(product)
+    api_end = format_discount_end_value(raw_end) if discount > 0 else ""
+    page_info = parse_stove_page_info(url) if discount > 0 else {
+        "discount_end": "",
+        "collection_discount": 0,
+        "is_collection": False,
+    }
+
+    discount_end = api_end or page_info["discount_end"]
+    base_discount = int(page_info.get("collection_discount") or 0)
+    base_label = "컬렉션 할인" if page_info.get("is_collection") and base_discount > 0 else ""
+
+    if discount > 0 and discount_end == "종료 예정 없음":
+        if base_discount <= 0:
+            base_discount = discount
+            base_label = "컬렉션 할인" if page_info.get("is_collection") else "상시 할인"
+        sale_active = False
+        discount_end = ""
+    elif discount > 0 and discount_end:
+        sale_active = True
+    elif discount > base_discount:
+        sale_active = True
+    elif discount > 0 and base_discount > 0:
+        sale_active = False
+    elif discount > 0:
+        sale_active = None
+    else:
+        sale_active = False
+
+    if sale_active:
         if discount_end:
-            print(f"STOVE 할인 종료: {discount_end}")
+            print(f"STOVE 기간 세일: -{discount}% / 종료 {discount_end}")
+        else:
+            print(f"STOVE 세일 감지: -{discount}% / 종료일 정보 없음")
+    elif base_discount > 0:
+        print(f"STOVE 상시 {base_label}: -{base_discount}%")
 
-    return title, price, "한국", discount_end
+    return result(
+        title,
+        price,
+        "한국",
+        discount_end=discount_end if sale_active else "",
+        sale_active=sale_active,
+        discount_percent=discount,
+        base_discount=base_discount,
+        base_discount_label=base_label,
+    )
 
 
 def steam_appdetails(appid: str, cc: str, lang: str):
@@ -429,16 +519,14 @@ def steam_discount_end(id_key: str, item_id: str, cc: str, lang: str, region: st
             continue
         seen.add(marker)
 
-        # For a bundle lookup, prefer purchase options that actually refer to
-        # the requested bundle. App lookups may point to a package instead.
         if id_key == "bundleid" and option.get("bundleid") not in (None, 0):
             if str(option.get("bundleid")) != str(item_id):
                 continue
 
-        for discount in option.get("active_discounts") or []:
-            if not isinstance(discount, dict):
+        for discount_obj in option.get("active_discounts") or []:
+            if not isinstance(discount_obj, dict):
                 continue
-            raw_end = discount.get("discount_end_date")
+            raw_end = discount_obj.get("discount_end_date")
             try:
                 ts = float(raw_end)
             except (TypeError, ValueError):
@@ -449,12 +537,10 @@ def steam_discount_end(id_key: str, item_id: str, cc: str, lang: str, region: st
     if not end_times:
         return ""
 
-    # If multiple discounts are stacked, the current effective price can first
-    # change when the earliest active discount expires.
-    result = format_discount_end_value(min(end_times))
-    if result:
-        print(f"Steam 할인 종료: {item_id} / {region} / {result}")
-    return result
+    result_end = format_discount_end_value(min(end_times))
+    if result_end:
+        print(f"Steam 할인 종료: {item_id} / {region} / {result_end}")
+    return result_end
 
 
 def parse_steam_display_price(text: str, currency: str):
@@ -514,14 +600,37 @@ def steam_bundle_resolve(bundle_id: str, cc: str, lang: str, currency: str, symb
         discount = int(bundle.get("discount_percent") or 0)
     except (TypeError, ValueError):
         discount = 0
+    try:
+        base_discount = int(bundle.get("bundle_base_discount") or 0)
+    except (TypeError, ValueError):
+        base_discount = 0
 
     price = f"{symbol}{amount:,}"
     if discount > 0:
         price += f" (-{discount}%)"
 
-    discount_end = steam_discount_end("bundleid", bundle_id, cc, lang, region) if discount > 0 else ""
+    sale_active = discount > base_discount
+    discount_end = steam_discount_end("bundleid", bundle_id, cc, lang, region) if sale_active else ""
+
+    if sale_active:
+        print(
+            f"Steam Bundle 세일: {bundle_id} / {region} / "
+            f"현재 -{discount}% / 기본 번들 -{base_discount}%"
+        )
+    elif base_discount > 0:
+        print(f"Steam Bundle 상시 할인: {bundle_id} / {region} / -{base_discount}%")
+
     print(f"Steam Bundle resolve 사용: {bundle_id} / {region} / {formatted}")
-    return title, price, region, discount_end
+    return result(
+        title,
+        price,
+        region,
+        discount_end=discount_end,
+        sale_active=sale_active,
+        discount_percent=discount,
+        base_discount=base_discount,
+        base_discount_label="번들 할인" if base_discount > 0 else "",
+    )
 
 
 def steam_bundle_page(bundle_id: str, url: str, cc: str, lang: str, currency: str, symbol: str, region: str):
@@ -535,6 +644,7 @@ def steam_bundle_page(bundle_id: str, url: str, cc: str, lang: str, currency: st
     )
     r.raise_for_status()
     soup = BeautifulSoup(r.text, "html.parser")
+    text = clean_text(soup.get_text(" ", strip=True))
 
     title = None
     for selector in ["h2.pageheader", ".pageheader", ".bundle_page_header h2"]:
@@ -547,6 +657,19 @@ def steam_bundle_page(bundle_id: str, url: str, cc: str, lang: str, currency: st
         title = parse_title(soup)
     title = re.sub(r"\s+(?:on Steam|Steam에서)$", "", title, flags=re.I)
 
+    base_discount = 0
+    m = re.search(r"(?:Bundle discount|꾸러미 할인)\s*:?\s*(\d{1,3})\s*%", text, re.I)
+    if m:
+        base_discount = int(m.group(1))
+
+    current_discount = 0
+    for node in soup.select(".bundle_area_purchase_game .discount_pct"):
+        m = re.search(r"(\d{1,3})\s*%", clean_text(node.get_text(" ", strip=True)))
+        if m:
+            current_discount = max(current_discount, int(m.group(1)))
+    if current_discount == 0:
+        current_discount = base_discount
+
     for selector in [
         ".bundle_area_purchase_game .discount_final_price",
         ".bundle_area_purchase_game .game_purchase_price",
@@ -555,9 +678,23 @@ def steam_bundle_page(bundle_id: str, url: str, cc: str, lang: str, currency: st
     ]:
         for node in soup.select(selector):
             amount = parse_steam_display_price(node.get_text(" ", strip=True), currency)
-            if amount is not None:
-                discount_end = steam_discount_end("bundleid", bundle_id, cc, lang, region)
-                return title or f"Steam Bundle {bundle_id}", f"{symbol}{amount:,}", region, discount_end
+            if amount is None:
+                continue
+            sale_active = current_discount > base_discount
+            discount_end = steam_discount_end("bundleid", bundle_id, cc, lang, region) if sale_active else ""
+            price = f"{symbol}{amount:,}"
+            if current_discount > 0:
+                price += f" (-{current_discount}%)"
+            return result(
+                title or f"Steam Bundle {bundle_id}",
+                price,
+                region,
+                discount_end=discount_end,
+                sale_active=sale_active,
+                discount_percent=current_discount,
+                base_discount=base_discount,
+                base_discount_label="번들 할인" if base_discount > 0 else "",
+            )
 
     return None
 
@@ -573,7 +710,7 @@ def parse_steam_app(url: str, appid: str):
 
         title = info.get("name") or f"Steam App {appid}"
         if info.get("is_free"):
-            return title, f"{symbol}0", region, ""
+            return result(title, f"{symbol}0", region, sale_active=False)
 
         po = info.get("price_overview")
         if not po or po.get("currency") != currency:
@@ -587,7 +724,14 @@ def parse_steam_app(url: str, appid: str):
         if discount > 0:
             price += f" (-{discount}%)"
         discount_end = steam_discount_end("appid", appid, cc, lang, region) if discount > 0 else ""
-        return title, price, region, discount_end
+        return result(
+            title,
+            price,
+            region,
+            discount_end=discount_end,
+            sale_active=discount > 0,
+            discount_percent=discount,
+        )
 
     raise ValueError("Steam 한국/일본 스토어 모두에서 판매 가격을 찾지 못했습니다.")
 
@@ -598,16 +742,16 @@ def parse_steam_bundle(url: str, bundle_id: str):
         ("jp", "japanese", "JPY", "¥", "일본"),
     ]:
         try:
-            result = steam_bundle_resolve(bundle_id, cc, lang, currency, symbol, region)
-            if result:
-                return result
+            parsed = steam_bundle_resolve(bundle_id, cc, lang, currency, symbol, region)
+            if parsed:
+                return parsed
         except Exception as e:
             print(f"Steam Bundle resolve 실패 ({region}): {e}", file=sys.stderr)
 
         try:
-            result = steam_bundle_page(bundle_id, url, cc, lang, currency, symbol, region)
-            if result:
-                return result
+            parsed = steam_bundle_page(bundle_id, url, cc, lang, currency, symbol, region)
+            if parsed:
+                return parsed
         except Exception as e:
             print(f"Steam Bundle 페이지 fallback 실패 ({region}): {e}", file=sys.stderr)
 
@@ -646,14 +790,14 @@ def parse_generic(url: str, html: str):
                 offers = obj.get("offers")
                 if isinstance(offers, dict) and offers.get("price") is not None:
                     currency = offers.get("priceCurrency", "")
-                    return title, f"{currency} {offers['price']}".strip(), "", ""
+                    return result(title, f"{currency} {offers['price']}".strip())
                 stack.extend(v for v in obj.values() if isinstance(v, (dict, list)))
             elif isinstance(obj, list):
                 stack.extend(obj)
 
     m = PRICE_RE.search(text)
     if m:
-        return title, clean_text(m.group(0)), "", ""
+        return result(title, clean_text(m.group(0)))
     raise ValueError("가격을 자동 추출하지 못했습니다. 이 사이트용 파서 추가가 필요합니다.")
 
 
@@ -689,32 +833,62 @@ def post_discord(content: str):
     r.raise_for_status()
 
 
-def send_discord(
-    index: int,
-    title: str,
-    old_price: str,
-    new_price: str,
-    url: str,
-    region: str = "",
-    discount_end: str = "",
-    old_discount_end: str = "",
-):
+def base_discount_line(item, bold=True):
+    base = int(item.get("base_discount") or 0)
+    if base <= 0:
+        return ""
+    label = item.get("base_discount_label") or "상시 할인"
+    value = f"-{base}%"
+    if bold:
+        value = f"**{value}**"
+    return f"상시 {label}: {value}\n"
+
+
+def sale_status_line(item):
+    active = item.get("sale_active")
+    if active is True:
+        return "세일 상태: **진행 중**\n"
+    if active is False:
+        return "세일 상태: **세일 아님**\n"
+    return ""
+
+
+def change_header(prev, current):
+    if "sale_active" in prev:
+        old_sale = prev.get("sale_active")
+        new_sale = current.get("sale_active")
+        if old_sale is False and new_sale is True:
+            return "🟢 **세일 시작**"
+        if old_sale is True and new_sale is False:
+            return "🔴 **세일 종료**"
+        if old_sale is True and new_sale is True:
+            return "🟡 **세일/가격 정보 변경**"
+    return "💰 **가격/할인 정보 변경 감지**"
+
+
+def send_discord(index: int, prev: dict, current: dict, url: str):
+    region = current.get("region", "")
     region_line = f"지역: **{region}**\n" if region else ""
-    if discount_end and old_discount_end and discount_end != old_discount_end:
-        discount_line = f"할인 종료: `{old_discount_end}` → `{discount_end}`\n"
-    elif discount_end:
-        discount_line = f"할인 종료: **{discount_end}**\n"
-    elif old_discount_end and old_discount_end != discount_end:
-        discount_line = f"할인 종료: `{old_discount_end}` → `종료/정보 없음`\n"
+
+    old_end = prev.get("discount_end", "")
+    new_end = current.get("discount_end", "")
+    if new_end and old_end and new_end != old_end:
+        discount_line = f"할인 종료: `{old_end}` → `{new_end}`\n"
+    elif new_end:
+        discount_line = f"할인 종료: **{new_end}**\n"
+    elif old_end and old_end != new_end:
+        discount_line = f"할인 종료: `{old_end}` → `종료/정보 없음`\n"
     else:
         discount_line = ""
 
     post_discord(
-        "💰 **가격/할인 정보 변경 감지**\n\n"
-        f"**#{index} · {title}**\n"
+        f"{change_header(prev, current)}\n\n"
+        f"**#{index} · {current['title']}**\n"
         f"{region_line}"
-        f"이전: `{old_price}`\n"
-        f"현재: `{new_price}`\n"
+        f"이전: `{prev.get('price', '알 수 없음')}`\n"
+        f"현재: `{current['price']}`\n"
+        f"{sale_status_line(current)}"
+        f"{base_discount_line(current)}"
         f"{discount_line}"
         f"<{url}>\n\n"
         f"⚙️ 가격 추적 관리: <{ACTIONS_URL}>"
@@ -727,6 +901,13 @@ def send_current_report(items, failures):
         region = f" · {item['region']}" if item.get("region") else ""
         lines.append(f"**#{item['index']} · {item['title']}**")
         lines.append(f"현재: `{item['price']}`{region}")
+        if item.get("sale_active") is True:
+            lines.append("세일 상태: **진행 중**")
+        elif item.get("sale_active") is False:
+            lines.append("세일 상태: **세일 아님**")
+        if int(item.get("base_discount") or 0) > 0:
+            label = item.get("base_discount_label") or "상시 할인"
+            lines.append(f"상시 {label}: **-{item['base_discount']}%**")
         if item.get("discount_end"):
             lines.append(f"할인 종료: **{item['discount_end']}**")
         lines.append(f"<{item['url']}>")
@@ -754,6 +935,23 @@ def send_current_report(items, failures):
         time.sleep(0.4)
 
 
+def log_suffix(item):
+    parts = []
+    if item.get("sale_active") is True:
+        parts.append("세일 진행 중")
+    elif item.get("sale_active") is False:
+        parts.append("세일 아님")
+
+    base = int(item.get("base_discount") or 0)
+    if base > 0:
+        label = item.get("base_discount_label") or "상시 할인"
+        parts.append(f"상시 {label} -{base}%")
+
+    if item.get("discount_end"):
+        parts.append(f"할인 종료 {item['discount_end']}")
+    return (" / " + " / ".join(parts)) if parts else ""
+
+
 def main():
     urls = read_urls()
     state = load_state()
@@ -769,55 +967,67 @@ def main():
 
     for index, url in enumerate(urls, start=1):
         try:
-            title, price, region, discount_end = parse_page(url)
+            parsed = parse_page(url)
             prev = old_items.get(url)
-            item = {
-                "index": index,
-                "title": title,
-                "price": price,
-                "region": region,
-                "discount_end": discount_end,
-                "url": url,
-            }
-            new_items[url] = {
-                "title": title,
-                "price": price,
-                "region": region,
-                "discount_end": discount_end,
-                "url": url,
-            }
-            report_items.append(item)
 
-            end_suffix = f" / 할인 종료 {discount_end}" if discount_end else ""
+            current = {
+                **parsed,
+                "url": url,
+            }
+            new_items[url] = current
+            report_items.append({"index": index, **current})
+
+            suffix = log_suffix(current)
             if prev is None:
-                print(f"기준점 등록: #{index} {title} = {price} ({region}){end_suffix}")
+                print(f"기준점 등록: #{index} {current['title']} = {current['price']} ({current['region']}){suffix}")
                 continue
 
-            price_or_region_changed = prev.get("price") != price or prev.get("region", "") != region
-            # Migration-safe: old state entries have no discount_end key. Populate it
-            # silently once, then detect real deadline changes from subsequent runs.
-            end_changed = "discount_end" in prev and prev.get("discount_end", "") != discount_end
+            price_or_region_changed = (
+                prev.get("price") != current["price"]
+                or prev.get("region", "") != current["region"]
+            )
+            end_changed = (
+                "discount_end" in prev
+                and prev.get("discount_end", "") != current.get("discount_end", "")
+            )
+            sale_changed = (
+                "sale_active" in prev
+                and prev.get("sale_active") != current.get("sale_active")
+            )
+            base_changed = (
+                "base_discount" in prev
+                and int(prev.get("base_discount") or 0) != int(current.get("base_discount") or 0)
+            )
 
-            if price_or_region_changed or end_changed:
-                if price_or_region_changed:
-                    print(f"가격/지역 변경: #{index} {title}: {prev.get('price')} -> {price} [{region}]{end_suffix}")
+            if price_or_region_changed or end_changed or sale_changed or base_changed:
+                if sale_changed:
+                    print(
+                        f"세일 상태 변경: #{index} {current['title']}: "
+                        f"{prev.get('sale_active')} -> {current.get('sale_active')}{suffix}"
+                    )
+                elif price_or_region_changed:
+                    print(
+                        f"가격/지역 변경: #{index} {current['title']}: "
+                        f"{prev.get('price')} -> {current['price']} [{current['region']}]{suffix}"
+                    )
+                elif base_changed:
+                    print(
+                        f"상시 할인 변경: #{index} {current['title']}: "
+                        f"-{int(prev.get('base_discount') or 0)}% -> "
+                        f"-{int(current.get('base_discount') or 0)}%"
+                    )
                 else:
                     print(
-                        f"할인 종료 변경: #{index} {title}: "
-                        f"{prev.get('discount_end', '') or '정보 없음'} -> {discount_end or '정보 없음'}"
+                        f"할인 종료 변경: #{index} {current['title']}: "
+                        f"{prev.get('discount_end', '') or '정보 없음'} -> "
+                        f"{current.get('discount_end', '') or '정보 없음'}"
                     )
-                send_discord(
-                    index,
-                    title,
-                    prev.get("price", "알 수 없음"),
-                    price,
-                    url,
-                    region,
-                    discount_end,
-                    prev.get("discount_end", ""),
-                )
+                send_discord(index, prev, current, url)
             else:
-                print(f"변경 없음: #{index} {title} = {price} ({region}){end_suffix}")
+                print(
+                    f"변경 없음: #{index} {current['title']} = "
+                    f"{current['price']} ({current['region']}){suffix}"
+                )
         except Exception as e:
             msg = f"#{index} {url}: {e}"
             failures.append(msg)

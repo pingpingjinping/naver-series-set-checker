@@ -46,9 +46,6 @@ jobs:
           DISCORD_WEBHOOK: ${{ secrets.SERIES_DISCORD_WEBHOOK }}
         run: python check.py
 
-      - name: Debug Series discount pages
-        run: python debug_series_discount.py
-
       - name: Save state
         run: |
           if git diff --quiet -- state.json; then

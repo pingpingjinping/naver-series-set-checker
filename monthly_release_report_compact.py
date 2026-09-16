@@ -5,9 +5,11 @@ import monthly_release_report as core
 
 def compact_sections(site_name: str, titles):
     if site_name == "리디":
-        order = ["🆕 신작", "🔄 후속권", "⭐ 독점", "기타"]
+        exclusive_bucket = "⭐ 리디 독점"
+        order = ["🆕 신작", "🔄 후속권", exclusive_bucket, "기타"]
     else:
-        order = ["🆕 신간", "✨ 신규 연재", "🔄 후속권", "⭐ 독점", "기타"]
+        exclusive_bucket = "⭐ 알라딘 독점"
+        order = ["🆕 신간", "✨ 신규 연재", "🔄 후속권", exclusive_bucket, "기타"]
 
     buckets = {name: [] for name in order}
 
@@ -36,16 +38,14 @@ def compact_sections(site_name: str, titles):
             bucket = "🔄 후속권"
             text = text.replace("🔄 [후속권]", "")
         elif exclusive:
-            bucket = "⭐ 독점"
+            bucket = exclusive_bucket
 
         text = core.clean_markdown(text).strip()
         if not text:
             continue
 
-        # RIDI ONLY처럼 다른 출시 구분과 함께 붙은 독점 표시는 작품 앞 별 하나로만 남긴다.
-        if exclusive and bucket != "⭐ 독점":
-            text = f"⭐ {text}"
-        elif exclusive and bucket == "⭐ 독점":
+        # 독점이 신작/후속권과 같이 붙은 경우엔 카테고리를 중복시키지 않고 별 하나로만 표시한다.
+        if exclusive:
             text = f"⭐ {text}"
 
         if text not in buckets[bucket]:

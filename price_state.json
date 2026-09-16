@@ -31,6 +31,13 @@
       "discount_percent": 60,
       "base_discount": 5,
       "base_discount_label": "번들 할인",
+      "steam_history_low": "¥6,018",
+      "steam_history_low_amount": 6018,
+      "steam_history_low_currency": "JPY",
+      "steam_history_low_cut": 60,
+      "steam_history_low_date": "2025-06-10",
+      "itad_game_url": "https://isthereanydeal.com/game/id:018d937f-3dc8-734a-a7e9-f060f2bb9838/",
+      "steamdb_url": "https://steamdb.info/bundle/13066/",
       "url": "https://store.steampowered.com/bundle/13066/Atelier_Dusk_Trilogy_Deluxe_Pack/"
     },
     "https://store.steampowered.com/app/886820/Nelke__the_Legendary_Alchemists_Ateliers_of_the_New_World/": {
@@ -42,6 +49,13 @@
       "discount_percent": 77,
       "base_discount": 0,
       "base_discount_label": "",
+      "steam_history_low": "¥1,973",
+      "steam_history_low_amount": 1973,
+      "steam_history_low_currency": "JPY",
+      "steam_history_low_cut": 77,
+      "steam_history_low_date": "2025-09-16",
+      "itad_game_url": "https://isthereanydeal.com/game/id:018d937f-102b-7305-886e-f58a6150f85d/",
+      "steamdb_url": "https://steamdb.info/app/886820/",
       "url": "https://store.steampowered.com/app/886820/Nelke__the_Legendary_Alchemists_Ateliers_of_the_New_World/"
     },
     "https://store.steampowered.com/bundle/20340/Atelier_Mysterious_Trilogy_Deluxe_Pack/": {
@@ -53,6 +67,13 @@
       "discount_percent": 50,
       "base_discount": 5,
       "base_discount_label": "번들 할인",
+      "steam_history_low": "¥7,524",
+      "steam_history_low_amount": 7524,
+      "steam_history_low_currency": "JPY",
+      "steam_history_low_cut": 50,
+      "steam_history_low_date": "2024-12-20",
+      "itad_game_url": "https://isthereanydeal.com/game/id:018d937f-4f18-7206-9727-16751fa93d26/",
+      "steamdb_url": "https://steamdb.info/bundle/20340/",
       "url": "https://store.steampowered.com/bundle/20340/Atelier_Mysterious_Trilogy_Deluxe_Pack/"
     }
   }

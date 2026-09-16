@@ -3,6 +3,10 @@ import time
 import monthly_release_report as core
 
 
+NORMAL_MARKER = "▫"
+EXCLUSIVE_MARKER = "▪"
+
+
 def compact_sections(site_name: str, titles):
     if site_name == "리디":
         exclusive_bucket = "리디 독점"
@@ -45,9 +49,9 @@ def compact_sections(site_name: str, titles):
         if not text:
             continue
 
-        # 독점 작품은 별도 아이콘 없이 제목만 굵게 표시한다.
-        if exclusive:
-            text = f"**{text}**"
+        # 기존 불릿 대신 작은 네모 하나로 독점 여부를 표시한다.
+        marker = EXCLUSIVE_MARKER if exclusive else NORMAL_MARKER
+        text = f"{marker} {text}"
 
         if text not in buckets[bucket]:
             buckets[bucket].append(text)
@@ -90,7 +94,7 @@ def send_report(site_name: str, emoji: str, year: int, month: int, groups, sourc
                 current += section_header
 
             for title in titles:
-                line = f"• {title}\n"
+                line = f"{title}\n"
                 if len(current) + len(line) + len(footer) > 1900:
                     start_new(context + line)
                 else:

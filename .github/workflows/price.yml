@@ -2,9 +2,6 @@ name: WalnutPi Price Watch
 
 on:
   workflow_dispatch:
-  push:
-    paths:
-      - "price_state.json"
 
 permissions:
   contents: write

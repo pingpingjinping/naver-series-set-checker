@@ -25,8 +25,10 @@ HEADERS = {
     "Accept-Language": "ko-KR,ko;q=0.9,en;q=0.8",
 }
 
+
 def clean_text(s: str) -> str:
     return re.sub(r"\s+", " ", s or "").strip()
+
 
 def fetch_page(page: int):
     params = {
@@ -38,6 +40,7 @@ def fetch_page(page: int):
     r = requests.get(SEARCH_URL, params=params, headers=HEADERS, timeout=30)
     r.raise_for_status()
     return r.text
+
 
 def parse_items(html: str):
     soup = BeautifulSoup(html, "html.parser")
@@ -55,11 +58,9 @@ def parse_items(html: str):
             continue
 
         title = clean_text(a.get_text(" ", strip=True))
-        # 검색결과의 작품 링크는 제목이 길고, 네이버 검색어 특성상 [..세트]가 들어가는 경우가 대부분.
         if not title or "세트" not in title:
             continue
 
-        # 제목 뒤에 "(총 N권/완결)" 같은 문자열이 같이 잡혀도 알림에 유용하므로 유지.
         date = ""
         meta_text = ""
 
@@ -85,13 +86,9 @@ def parse_items(html: str):
 
     return list(items.values())
 
-def is_bl_product(item):
-    """네이버 시리즈 작품 장르가 BL이면 True.
 
-    제목에 [BL]이 붙은 경우는 바로 판정한다. 제목에 표시가 없는 작품도 있으므로
-    모바일 상세 페이지의 '장르 -> BL' 작품 메타데이터를 추가로 확인한다.
-    상세 페이지 확인에 실패하면 정상 작품을 놓치지 않도록 False로 처리한다.
-    """
+def is_bl_product(item):
+    """네이버 시리즈 작품 장르가 BL이면 True."""
     if re.search(r"\[\s*BL\s*\]", item.get("title", ""), re.IGNORECASE):
         return True
 
@@ -104,7 +101,6 @@ def is_bl_product(item):
 
         strings = [clean_text(x) for x in soup.stripped_strings if clean_text(x)]
 
-        # 모바일 상세 페이지는 작품 정보에 '장르' 다음 값으로 실제 장르를 표시한다.
         for i, text in enumerate(strings):
             if text != "장르":
                 continue
@@ -117,7 +113,6 @@ def is_bl_product(item):
                     break
             return False
 
-        # 마크업이 조금 바뀌어 문자열이 합쳐진 경우를 위한 보조 판정.
         visible_text = "\n".join(strings)
         if re.search(r"(?:^|\n)장르\s*(?:\n\s*)?BL(?:\s|\n|$)", visible_text, re.IGNORECASE):
             return True
@@ -126,6 +121,75 @@ def is_bl_product(item):
         print(f"BL 태그 확인 실패: {item.get('title', item.get('id'))} ({e})")
 
     return False
+
+
+def normalize_discount_end(text: str) -> str:
+    text = clean_text(text)
+    if not text:
+        return ""
+
+    m = re.search(r"(20\d{2})[./-](\d{1,2})[./-](\d{1,2})", text)
+    if m:
+        year, month, day = map(int, m.groups())
+        return f"{year:04d}-{month:02d}-{day:02d}까지"
+    return text
+
+
+def parse_set_discount_html(html: str, mobile: bool = False):
+    soup = BeautifulSoup(html, "html.parser")
+
+    if mobile:
+        discount_node = soup.select_one(".point_price")
+        end_node = soup.select_one(".sub_info")
+    else:
+        discount_node = soup.select_one(".area_price .price_info")
+        end_node = soup.select_one(".area_price .price_info_sub")
+
+    discount = clean_text(discount_node.get_text(" ", strip=True)) if discount_node else ""
+    discount_end = normalize_discount_end(end_node.get_text(" ", strip=True)) if end_node else ""
+
+    if discount and not re.search(r"\d+\s*%\s*할인", discount):
+        discount = ""
+
+    return discount, discount_end
+
+
+def add_set_discount_info(item):
+    """신규 세트의 할인율/표시된 할인 종료일을 상세 페이지에서 보강한다.
+
+    네이버가 종료일을 제공하지 않는 세트는 discount_end를 빈 값으로 둔다.
+    """
+    product_no = item["id"]
+    discount = ""
+    discount_end = ""
+
+    targets = [
+        (False, f"https://series.naver.com/comic/detail.series?productNo={product_no}"),
+        (True, f"https://m.series.naver.com/comic/detail.series?productNo={product_no}"),
+    ]
+
+    for mobile, url in targets:
+        try:
+            r = requests.get(url, headers=HEADERS, timeout=30)
+            r.raise_for_status()
+            found_discount, found_end = parse_set_discount_html(r.text, mobile=mobile)
+            if found_discount and not discount:
+                discount = found_discount
+            if found_end and not discount_end:
+                discount_end = found_end
+            if discount and discount_end:
+                break
+        except Exception as e:
+            where = "모바일" if mobile else "PC"
+            print(f"세트 할인 정보 확인 실패 ({where}): {item.get('title', product_no)} ({e})")
+
+    item["discount"] = discount
+    item["discount_end"] = discount_end
+
+    if discount:
+        suffix = f" / 종료 {discount_end}" if discount_end else " / 종료일 미표시"
+        print(f"세트 할인 확인: {item['title']} / {discount}{suffix}")
+
 
 def load_state():
     if not STATE_FILE.exists():
@@ -138,6 +202,7 @@ def load_state():
         pass
     return None
 
+
 def save_state(items):
     payload = {
         "items": {x["id"]: x for x in items}
@@ -146,6 +211,7 @@ def save_state(items):
         json.dumps(payload, ensure_ascii=False, indent=2),
         encoding="utf-8"
     )
+
 
 def send_discord(new_items):
     if not DISCORD_WEBHOOK:
@@ -158,6 +224,10 @@ def send_discord(new_items):
         line = f"\n**{item['title']}**"
         if item.get("date"):
             line += f"\n등록/업데이트: {item['date']}"
+        if item.get("discount"):
+            line += f"\n세트 할인: **{item['discount']}**"
+        if item.get("discount_end"):
+            line += f"\n할인 종료: **{item['discount_end']}**"
         line += f"\n<{item['url']}>\n"
 
         if len(current) + len(line) > 1900:
@@ -177,6 +247,7 @@ def send_discord(new_items):
         r.raise_for_status()
         time.sleep(0.5)
 
+
 def main():
     all_items = {}
     for page in range(1, PAGES + 1):
@@ -194,7 +265,6 @@ def main():
 
     old = load_state()
 
-    # 최초 실행: 현재 목록만 기준점으로 저장, Discord 알림은 보내지 않음.
     if old is None or not old.get("items"):
         print(f"첫 실행: 현재 {len(items)}개를 기준점으로 저장합니다. 알림은 보내지 않습니다.")
         save_state(items)
@@ -213,6 +283,7 @@ def main():
                 skipped_bl.append(item)
                 print(f"BL 알림 제외: {item['title']}")
             else:
+                add_set_discount_info(item)
                 notify_items.append(item)
             time.sleep(0.2)
 
@@ -220,7 +291,6 @@ def main():
             print(f"BL 작품 {len(skipped_bl)}개 알림 제외")
 
         if notify_items:
-            # 최신순 페이지 순서를 최대한 유지
             send_discord(notify_items)
             print(f"Discord 알림 전송 완료: {len(notify_items)}개")
         else:
@@ -228,8 +298,8 @@ def main():
     else:
         print("신규 작품 없음")
 
-    # BL 포함 전체 최신 스냅샷을 저장해서 제외 작품이 다음 실행에 다시 잡히지 않게 한다.
     save_state(items)
+
 
 if __name__ == "__main__":
     main()

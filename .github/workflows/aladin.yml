@@ -9,11 +9,14 @@ on:
         default: false
         type: boolean
   schedule:
-    # 06:10 KST = 21:10 UTC (previous calendar day in UTC)
+    # GitHub mode primary: 06:10 KST = 21:10 UTC (previous calendar day)
     - cron: "10 21 * * *"
+    # Pi mode failover check: 06:30 KST = 21:30 UTC (previous calendar day)
+    - cron: "30 21 * * *"
 
 permissions:
   contents: write
+  actions: read
 
 concurrency:
   group: aladin-state-writes
@@ -30,40 +33,11 @@ jobs:
         id: scheduler
         env:
           EVENT_NAME: ${{ github.event_name }}
+          EVENT_SCHEDULE: ${{ github.event.schedule || '' }}
           FORCE_RUN: ${{ inputs.force_run || false }}
-        run: |
-          mode="$(tr -d '[:space:]' < scheduler_mode.txt 2>/dev/null || true)"
-          if [ "$mode" != "pi" ] && [ "$mode" != "github" ]; then
-            echo "scheduler_mode.txt 값이 잘못되어 안전하게 pi로 처리합니다: '$mode'"
-            mode="pi"
-          fi
-
-          run="false"
-          reason=""
-
-          if [ "$FORCE_RUN" = "true" ]; then
-            run="true"
-            reason="manual force_run"
-          elif [ "$EVENT_NAME" = "schedule" ]; then
-            if [ "$mode" = "github" ]; then
-              run="true"
-              reason="GitHub schedule accepted"
-            else
-              reason="GitHub schedule ignored (mode=pi)"
-            fi
-          else
-            if [ "$mode" = "pi" ]; then
-              run="true"
-              reason="Pi workflow_dispatch accepted"
-            else
-              reason="Pi workflow_dispatch ignored (mode=github)"
-            fi
-          fi
-
-          echo "run=$run" >> "$GITHUB_OUTPUT"
-          echo "mode=$mode" >> "$GITHUB_OUTPUT"
-          echo "$reason"
-          echo "### Scheduler: $reason" >> "$GITHUB_STEP_SUMMARY"
+          WORKFLOW_FILE: aladin.yml
+          GH_TOKEN: ${{ github.token }}
+        run: python scheduler_decision.py
 
       - name: Set up Python
         if: ${{ steps.scheduler.outputs.run == 'true' }}

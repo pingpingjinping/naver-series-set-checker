@@ -4,19 +4,13 @@ on:
   workflow_dispatch:
     inputs:
       force_run:
-        description: "현재 scheduler mode와 무관하게 수동 실행"
+        description: "현재 scheduler mode와 무관하게 수동/중앙 스케줄러 실행"
         required: false
         default: false
         type: boolean
-  schedule:
-    # GitHub mode primary: 06:10 KST = 21:10 UTC (previous calendar day)
-    - cron: "10 21 * * *"
-    # Pi mode failover check: 06:15 KST = 21:15 UTC (previous calendar day)
-    - cron: "15 21 * * *"
 
 permissions:
   contents: write
-  actions: read
 
 concurrency:
   group: ridi-state-writes
@@ -33,10 +27,7 @@ jobs:
         id: scheduler
         env:
           EVENT_NAME: ${{ github.event_name }}
-          EVENT_SCHEDULE: ${{ github.event.schedule || '' }}
           FORCE_RUN: ${{ inputs.force_run || false }}
-          WORKFLOW_FILE: ridi.yml
-          GH_TOKEN: ${{ github.token }}
         run: python scheduler_decision.py
 
       - name: Set up Python

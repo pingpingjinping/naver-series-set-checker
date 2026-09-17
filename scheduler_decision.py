@@ -8,7 +8,7 @@ from zoneinfo import ZoneInfo
 
 MODE_FILE = "scheduler_mode.txt"
 GITHUB_PRIMARY_CRON = "10 21 * * *"  # 06:10 KST
-PI_FAILOVER_CRON = "30 21 * * *"    # 06:30 KST
+PI_FAILOVER_CRON = "15 21 * * *"    # 06:15 KST
 KST = ZoneInfo("Asia/Seoul")
 
 

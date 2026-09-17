@@ -1,0 +1,27 @@
+name: Daily Scheduler Failover
+
+on:
+  schedule:
+    # 06:15 KST = 21:15 UTC (previous calendar day in UTC)
+    - cron: "15 21 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: write
+
+concurrency:
+  group: daily-scheduler-failover
+  cancel-in-progress: false
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Check Pi signals and dispatch missing jobs
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python daily_scheduler_failover.py

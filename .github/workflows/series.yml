@@ -16,8 +16,8 @@ on:
   schedule:
     # GitHub mode primary: 06:10 KST = 21:10 UTC (previous calendar day)
     - cron: "10 21 * * *"
-    # Pi mode failover check: 06:30 KST = 21:30 UTC (previous calendar day)
-    - cron: "30 21 * * *"
+    # Pi mode failover check: 06:15 KST = 21:15 UTC (previous calendar day)
+    - cron: "15 21 * * *"
 
 permissions:
   contents: write

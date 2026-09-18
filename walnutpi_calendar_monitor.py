@@ -78,15 +78,6 @@ def target_month(now: datetime):
     return None
 
 
-def infer_year_for_month(month: int, now: datetime) -> int:
-    current_index = now.year * 12 + (now.month - 1)
-    candidates = []
-    for year in (now.year - 1, now.year, now.year + 1):
-        index = year * 12 + (month - 1)
-        candidates.append((abs(index - current_index), year))
-    return min(candidates)[1]
-
-
 def fetch_ridi() -> dict:
     r = requests.get(RIDI_URL, headers=HEADERS, timeout=30)
     r.raise_for_status()
@@ -115,11 +106,13 @@ def fetch_ridi() -> dict:
     raise ValueError("리디 페이지에서 'YYYY년 M월 만화 캘린더'를 찾지 못했습니다.")
 
 
-def fetch_aladin(now: datetime) -> dict:
+def fetch_aladin(target_year: int, target_month: int) -> dict | None:
     r = requests.get(ALADIN_LIST_URL, headers=HEADERS, timeout=30)
     r.raise_for_status()
     soup = BeautifulSoup(r.text, "html.parser")
 
+    # 알라딘은 월마다 EventId가 바뀌므로 "가장 최신"을 추정하지 않고,
+    # 이번 감시 주기의 목표 월과 정확히 일치하는 링크만 찾는다.
     candidates = []
     for a in soup.find_all("a", href=True):
         text = " ".join(a.stripped_strings)
@@ -127,40 +120,41 @@ def fetch_aladin(now: datetime) -> dict:
         if not m:
             continue
 
+        month = int(m.group("month"))
+        if month != target_month:
+            continue
+
         href = urljoin(ALADIN_LIST_URL, a["href"])
         event_m = re.search(r"[?&]EventId=(\d+)", href, re.I)
         event_id = int(event_m.group(1)) if event_m else 0
-        month = int(m.group("month"))
         candidates.append(
             {
-                "year": infer_year_for_month(month, now),
-                "month": month,
+                "year": target_year,
+                "month": target_month,
                 "title": text.strip(),
                 "url": href,
                 "event_id": event_id,
             }
         )
 
-    if not candidates:
-        text = soup.get_text(" ", strip=True)
-        m = ALADIN_RE.search(text)
-        if m:
-            month = int(m.group("month"))
-            candidates.append(
-                {
-                    "year": infer_year_for_month(month, now),
-                    "month": month,
-                    "title": m.group(0),
-                    "url": ALADIN_LIST_URL,
-                    "event_id": 0,
-                }
-            )
+    if candidates:
+        # 같은 목표 월 링크가 여러 개면 새 이벤트일 가능성이 높은 큰 EventId 우선.
+        return max(candidates, key=lambda x: x["event_id"])
 
-    if not candidates:
-        raise ValueError("알라딘 eBook 만화 출간 일정 캘린더를 찾지 못했습니다.")
+    # 링크 텍스트가 태그 단위로 쪼개져 있을 때를 위한 fallback.
+    # 목표 월 문구 자체가 페이지에 있을 때만 성공으로 본다.
+    page_text = soup.get_text(" ", strip=True)
+    for m in ALADIN_RE.finditer(page_text):
+        if int(m.group("month")) == target_month:
+            return {
+                "year": target_year,
+                "month": target_month,
+                "title": m.group(0),
+                "url": ALADIN_LIST_URL,
+                "event_id": 0,
+            }
 
-    return max(candidates, key=lambda x: (x["year"], x["month"], x["event_id"]))
-
+    return None
 
 def post_discord(content: str) -> None:
     # 로컬 webhook이 있으면 바로 전송하고, 없으면 기존 Pi GitHub 토큰으로
@@ -267,8 +261,11 @@ def update_site(site: str, target_year: int, target_mon: int, state: dict, now: 
         current = fetch_ridi()
         label = "리디"
     else:
-        current = fetch_aladin(now)
+        current = fetch_aladin(target_year, target_mon)
         label = "알라딘"
+        if current is None:
+            print(f"[aladin] 목표 월 {month_key(target_year, target_mon)} 링크 아직 없음")
+            return False
 
     current_key = month_key(current["year"], current["month"])
     target_key = month_key(target_year, target_mon)

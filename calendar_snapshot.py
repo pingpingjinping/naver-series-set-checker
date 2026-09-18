@@ -11,10 +11,39 @@ KST = ZoneInfo("Asia/Seoul")
 DEFAULT_OUTPUT = Path.home() / ".local/state/naver-series-set-checker/release_calendar.json"
 
 
+def clean_calendar_title(source: str, title: str) -> str:
+    exclusive = False
+    if source == "ridi" and "[RIDI ONLY]" in title:
+        exclusive = True
+    elif source == "aladin" and "[알라딘 독점]" in title:
+        exclusive = True
+
+    for label in (
+        "⭐ [RIDI ONLY]",
+        "⭐ [알라딘 독점]",
+        "🆕 [신작]",
+        "🆕 [신간]",
+        "🔄 [후속권]",
+        "✨ [신규 연재]",
+    ):
+        title = title.replace(label, "")
+
+    title = " ".join(title.split()).strip()
+    if not title:
+        return ""
+
+    if exclusive:
+        return f"{'⭐' if source == 'ridi' else '🌟'} {title}"
+    return title
+
+
 def source_items(source: str, groups: dict) -> list[dict]:
     items = []
     for day in sorted(groups):
         for title in groups[day].get("titles", []):
+            title = clean_calendar_title(source, title)
+            if not title:
+                continue
             items.append({
                 "day": int(day),
                 "source": source,

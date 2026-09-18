@@ -1,0 +1,12 @@
+[Unit]
+Description=Run WalnutPi monthly calendar monitor from the 27th through the 6th
+
+[Timer]
+OnCalendar=*-*-27..31 12:30:00 Asia/Seoul
+OnCalendar=*-*-01..06 12:30:00 Asia/Seoul
+Persistent=true
+AccuracySec=1min
+Unit=walnutpi-calendar-monitor.service
+
+[Install]
+WantedBy=timers.target

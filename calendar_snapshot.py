@@ -38,6 +38,12 @@ def clean_calendar_title(source: str, title: str) -> str:
     return title
 
 
+def normalize_title_key(title: str) -> str:
+    # 중복 판정용: 독점 표시 별은 무시하고 공백만 정규화한다.
+    title = title.lstrip("⭐🌟").strip()
+    return " ".join(title.split()).casefold()
+
+
 def source_items(source: str, groups: dict) -> list[dict]:
     items = []
     for day in sorted(groups):
@@ -51,6 +57,38 @@ def source_items(source: str, groups: dict) -> list[dict]:
                 "title": title,
             })
     return items
+
+
+def dedupe_items(items: list[dict]) -> list[dict]:
+    merged = {}
+
+    for item in items:
+        title = item["title"]
+        key = (int(item["day"]), normalize_title_key(title))
+        entry = merged.get(key)
+
+        if entry is None:
+            merged[key] = {
+                "day": int(item["day"]),
+                "source": item["source"],
+                "title": title,
+                "sources": [item["source"]],
+            }
+            continue
+
+        if item["source"] not in entry["sources"]:
+            entry["sources"].append(item["source"])
+
+        # 양쪽 사이트에 모두 존재하면 독점 별표는 의미가 없으므로 제거.
+        if len(entry["sources"]) > 1:
+            entry["source"] = "both"
+            entry["title"] = entry["title"].lstrip("⭐🌟").strip()
+
+    result = list(merged.values())
+    for item in result:
+        item["sources"].sort()
+    result.sort(key=lambda item: (item["day"], item["title"].casefold()))
+    return result
 
 
 def build_snapshot(year: int, month: int) -> dict:
@@ -88,7 +126,7 @@ def build_snapshot(year: int, month: int) -> dict:
             }
             print(f"{label}: 실패 - {type(exc).__name__}: {exc}")
 
-    result["items"].sort(key=lambda item: (item["day"], item["source"], item["title"]))
+    result["items"] = dedupe_items(result["items"])
     result["total"] = len(result["items"])
     return result
 

@@ -81,8 +81,9 @@ def similarity(a, b):
     return SequenceMatcher(None, a, b).ratio()
 
 
-def search_set(title):
-    best = None
+def search_products(title):
+    candidates = {}
+
     for page in (1, 2):
         r = requests.get(
             SEARCH_URL,
@@ -99,7 +100,7 @@ def search_set(title):
                 continue
 
             label = clean_text(a.get("title") or a.get_text(" ", strip=True))
-            if "세트" not in label:
+            if not label:
                 continue
 
             url = urljoin(BASE, href)
@@ -108,21 +109,25 @@ def search_set(title):
                 continue
 
             score = similarity(title, set_base_title(label))
-            if best is None or score > best["score"]:
-                best = {
+            old = candidates.get(product_no)
+            if old is None or score > old["score"]:
+                candidates[product_no] = {
                     "score": score,
                     "productNo": product_no,
                     "label": label,
                     "url": url,
+                    "is_set": "세트" in label,
                 }
 
-        if best and best["score"] >= 0.90:
-            break
         time.sleep(0.12)
 
-    if best and best["score"] >= 0.72:
-        return best
-    return None
+    # 일반 작품을 우선하되, 세트 상품도 후보로 남긴다.
+    ranked = sorted(
+        candidates.values(),
+        key=lambda x: (x["score"], not x["is_set"]),
+        reverse=True,
+    )
+    return [x for x in ranked if x["score"] >= 0.62][:8]
 
 
 def get_volume_date(product_no, volume_no):
@@ -172,17 +177,29 @@ def main():
     for idx, (aladin_raw, title, volume) in enumerate(SAMPLE, 1):
         aladin_date = date.fromisoformat(aladin_raw)
 
-        found = search_set(title)
-        if not found:
-            misses.append((title, volume, "네이버 세트 검색 실패"))
+        candidates = search_products(title)
+        if not candidates:
+            misses.append((title, volume, "네이버 작품 검색 실패"))
             print(f"[{idx:02}/{len(SAMPLE)}] 미매칭: {title} {volume}권")
             time.sleep(0.15)
             continue
 
-        naver_date, error = get_volume_date(found["productNo"], volume)
-        if error:
-            misses.append((title, volume, error))
-            print(f"[{idx:02}/{len(SAMPLE)}] 조회 실패: {title} {volume}권 / {error}")
+        found = None
+        naver_date = None
+        errors = []
+
+        for candidate in candidates:
+            candidate_date, error = get_volume_date(candidate["productNo"], volume)
+            if not error:
+                found = candidate
+                naver_date = candidate_date
+                break
+            errors.append(f"{candidate['label']}: {error}")
+
+        if found is None:
+            reason = " / ".join(errors[:3]) or "날짜 조회 실패"
+            misses.append((title, volume, reason))
+            print(f"[{idx:02}/{len(SAMPLE)}] 조회 실패: {title} {volume}권 / {reason}")
             time.sleep(0.15)
             continue
 

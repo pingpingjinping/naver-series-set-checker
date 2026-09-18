@@ -3,8 +3,10 @@ import os
 import re
 import sys
 import time
+from datetime import datetime
 from pathlib import Path
 from urllib.parse import urljoin, urlparse, parse_qs
+from zoneinfo import ZoneInfo
 
 import requests
 from bs4 import BeautifulSoup
@@ -14,6 +16,12 @@ SEARCH_URL = "https://series.naver.com/search/search.series"
 QUERY = "세트"
 PAGES = 3
 STATE_FILE = Path("state.json")
+TODAY_SETS_FILE = Path(
+    os.environ.get(
+        "SERIES_TODAY_FILE",
+        str(Path.home() / ".local/state/naver-series-set-checker/today_sets.json"),
+    )
+)
 DISCORD_WEBHOOK = os.environ.get("DISCORD_WEBHOOK", "").strip()
 
 HEADERS = {
@@ -213,6 +221,29 @@ def save_state(items):
     )
 
 
+def save_today_sets(items):
+    now = datetime.now(ZoneInfo("Asia/Seoul"))
+    payload = {
+        "date": now.strftime("%Y-%m-%d"),
+        "generatedAt": now.isoformat(),
+        "items": [
+            {
+                "id": item.get("id"),
+                "title": item.get("title", ""),
+                "url": item.get("url", ""),
+                "discount": item.get("discount", ""),
+                "discount_end": item.get("discount_end", ""),
+            }
+            for item in items
+        ],
+    }
+    TODAY_SETS_FILE.parent.mkdir(parents=True, exist_ok=True)
+    TODAY_SETS_FILE.write_text(
+        json.dumps(payload, ensure_ascii=False, indent=2),
+        encoding="utf-8",
+    )
+
+
 def send_discord(new_items):
     if not DISCORD_WEBHOOK:
         raise RuntimeError("DISCORD_WEBHOOK secret이 설정되어 있지 않습니다.")
@@ -263,6 +294,7 @@ def main():
 
     if old is None or not old.get("items"):
         print(f"첫 실행: 현재 {len(items)}개를 기준점으로 저장합니다. 알림은 보내지 않습니다.")
+        save_today_sets([])
         save_state(items)
         return
 
@@ -286,12 +318,15 @@ def main():
         if skipped_bl:
             print(f"BL 작품 {len(skipped_bl)}개 알림 제외")
 
+        save_today_sets(notify_items)
+
         if notify_items:
             send_discord(notify_items)
             print(f"Discord 알림 전송 완료: {len(notify_items)}개")
         else:
             print("알림 대상 신규 작품 없음 (BL 제외 후 0개)")
     else:
+        save_today_sets([])
         print("신규 작품 없음")
 
     save_state(items)

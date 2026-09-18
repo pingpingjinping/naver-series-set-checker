@@ -1,0 +1,43 @@
+name: WalnutPi Calendar Notify
+
+on:
+  workflow_dispatch:
+    inputs:
+      content:
+        description: "Discord message from WalnutPi calendar monitor"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send Discord notification
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.SERIES_DISCORD_WEBHOOK }}
+          MESSAGE: ${{ inputs.content }}
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          import urllib.request
+
+          webhook = os.environ["DISCORD_WEBHOOK"].strip()
+          message = os.environ["MESSAGE"]
+
+          req = urllib.request.Request(
+              webhook,
+              data=json.dumps({"content": message}).encode("utf-8"),
+              headers={
+                  "Content-Type": "application/json",
+                  "User-Agent": "walnutpi-calendar-notify",
+              },
+              method="POST",
+          )
+          with urllib.request.urlopen(req, timeout=30) as response:
+              if response.status not in (200, 204):
+                  raise RuntimeError(f"Discord HTTP {response.status}")
+          PY

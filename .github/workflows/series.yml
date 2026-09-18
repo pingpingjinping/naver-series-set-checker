@@ -59,18 +59,19 @@ jobs:
         if: ${{ steps.scheduler.outputs.run == 'true' }}
         env:
           DISCORD_WEBHOOK: ${{ secrets.SERIES_DISCORD_WEBHOOK }}
+          SERIES_TODAY_FILE: today_sets.json
         run: python check.py
 
       - name: Save state
         if: ${{ steps.scheduler.outputs.run == 'true' }}
         run: |
-          if git diff --quiet -- state.json; then
-            echo "state.json 변경 없음"
+          if git diff --quiet -- state.json today_sets.json && git diff --cached --quiet; then
+            echo "state.json / today_sets.json 변경 없음"
             exit 0
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add state.json
+          git add state.json today_sets.json
           git commit -m "chore: update Naver Series state"
 
           for attempt in 1 2 3 4; do

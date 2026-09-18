@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 import argparse
 import json
+import re
+import unicodedata
 from datetime import datetime
 from pathlib import Path
 from zoneinfo import ZoneInfo
@@ -39,9 +41,22 @@ def clean_calendar_title(source: str, title: str) -> str:
 
 
 def normalize_title_key(title: str) -> str:
-    # 중복 판정용: 독점 표시 별은 무시하고 공백만 정규화한다.
+    # 중복 판정용 2차 정규화.
+    # 같은 날짜 안에서만 사용하며, 실제로 다른 상품을 뭉치지 않도록
+    # 전각/반각, 문장부호, 공백, 대표적인 "권수" 표기 차이만 흡수한다.
     title = title.lstrip("⭐🌟").strip()
-    return " ".join(title.split()).casefold()
+    title = unicodedata.normalize("NFKC", title).casefold()
+
+    # 끝의 권수 표기 통일: 제1권 / 1권 / vol.1 / volume 1 / (1) -> 1
+    title = re.sub(r"\s*(?:제\s*)?(\d+)\s*권\s*$", r" \1", title)
+    title = re.sub(r"\s*(?:vol(?:ume)?\.?\s*)(\d+)\s*$", r" \1", title, flags=re.I)
+    title = re.sub(r"\s*[\(\[（]\s*(\d+)\s*[\)\]）]\s*$", r" \1", title)
+
+    # 콜론/괄호/마침표/중점/하이픈류 등은 비교 시 공백으로 취급.
+    # '~'는 합본 범위(예: 1~2)를 구분하기 위해 보존한다.
+    title = re.sub(r"[\s\-‐‑‒–—―_:：·・,，.。!！?？'\"“”‘’()\[\]{}（）【】「」『』〈〉《》]+", " ", title)
+    title = " ".join(title.split()).strip()
+    return title
 
 
 def source_items(source: str, groups: dict) -> list[dict]:

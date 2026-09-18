@@ -3,6 +3,7 @@ import base64
 import json
 import os
 import re
+import subprocess
 import sys
 from datetime import datetime
 from pathlib import Path
@@ -337,6 +338,32 @@ def send_manual_check_alert(target_year: int, target_mon: int, state: dict) -> N
     print(f"[deadline] {key} 직접 확인 알림 전송 완료")
 
 
+def ensure_release_calendar_snapshot(target_year: int, target_mon: int) -> None:
+    archive = STATE_DIR / f"release_calendar_{target_year:04d}-{target_mon:02d}.json"
+    if archive.exists():
+        print(f"[snapshot] {archive.name} 이미 있음 -> 생성 생략")
+        return
+
+    script = Path(__file__).with_name("calendar_snapshot.py")
+    print(f"[snapshot] {target_year:04d}-{target_mon:02d} 상세 출시 일정 생성")
+    result = subprocess.run(
+        [
+            sys.executable,
+            str(script),
+            "--year",
+            str(target_year),
+            "--month",
+            str(target_mon),
+        ],
+        check=False,
+    )
+    if result.returncode != 0 or not archive.exists():
+        raise RuntimeError(
+            f"캘린더 스냅샷 생성 실패(returncode={result.returncode}, exists={archive.exists()})"
+        )
+    print(f"[snapshot] 생성 완료: {archive}")
+
+
 def main() -> int:
     now = datetime.now(KST)
     target = target_month(now)
@@ -367,6 +394,13 @@ def main() -> int:
     if failures:
         print("일부 사이트 확인 실패. 다음 예약 실행 때 다시 시도합니다.")
         return 1
+
+    if all(is_target(state.get(site), target_year, target_mon) for site in ("ridi", "aladin")):
+        try:
+            ensure_release_calendar_snapshot(target_year, target_mon)
+        except Exception as exc:
+            print(f"[snapshot] 생성 실패: {type(exc).__name__}: {exc}")
+            return 1
 
     return 0
 

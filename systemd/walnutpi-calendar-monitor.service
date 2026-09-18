@@ -1,0 +1,10 @@
+[Unit]
+Description=WalnutPi monthly Ridi/Aladin calendar monitor
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=oneshot
+User=pi
+WorkingDirectory=/home/pi/.local/share/naver-series-set-checker
+ExecStart=/home/pi/.local/share/naver-series-set-checker/.venv/bin/python /home/pi/.local/share/naver-series-set-checker/walnutpi_calendar_monitor.py

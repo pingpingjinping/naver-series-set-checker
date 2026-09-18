@@ -36,6 +36,7 @@ WEBHOOK_FILE = Path.home() / ".config/naver-series-set-checker/discord_webhook"
 
 GITHUB_REPO = "pingpingjinping/naver-series-set-checker"
 GITHUB_BRANCH = "main"
+GITHUB_NOTIFY_WORKFLOW = "walnutpi-calendar-notify.yml"
 
 
 def load_text_secret(env_name: str, path: Path) -> str:
@@ -162,13 +163,37 @@ def fetch_aladin(now: datetime) -> dict:
 
 
 def post_discord(content: str) -> None:
+    # 로컬 webhook이 있으면 바로 전송하고, 없으면 기존 Pi GitHub 토큰으로
+    # GitHub Actions의 알림 전용 workflow를 호출한다.
     webhook = load_text_secret("DISCORD_WEBHOOK", WEBHOOK_FILE)
-    if not webhook:
+    if webhook:
+        r = requests.post(webhook, json={"content": content}, timeout=30)
+        r.raise_for_status()
+        return
+
+    token = load_text_secret("GITHUB_TOKEN", TOKEN_FILE)
+    if not token:
         raise RuntimeError(
-            f"Discord webhook이 없습니다. DISCORD_WEBHOOK 또는 {WEBHOOK_FILE}을 설정하세요."
+            f"Discord webhook도 GitHub token도 없습니다: {WEBHOOK_FILE}, {TOKEN_FILE}"
         )
 
-    r = requests.post(webhook, json={"content": content}, timeout=30)
+    api = (
+        f"https://api.github.com/repos/{GITHUB_REPO}/actions/workflows/"
+        f"{GITHUB_NOTIFY_WORKFLOW}/dispatches"
+    )
+    headers = {
+        "Accept": "application/vnd.github+json",
+        "Authorization": f"Bearer {token}",
+        "X-GitHub-Api-Version": "2022-11-28",
+        "User-Agent": "walnutpi-monthly-calendar-monitor",
+    }
+    body = {
+        "ref": GITHUB_BRANCH,
+        "inputs": {
+            "content": content,
+        },
+    }
+    r = requests.post(api, headers=headers, json=body, timeout=30)
     r.raise_for_status()
 
 

@@ -175,8 +175,9 @@ def strip_ridi_set_note(title: str):
     return title
 
 
-def add_item(groups, key, label, title):
+def add_item(groups, key, label, title, author=""):
     title = clean_markdown(title)
+    author = clean_markdown(author)
     if not title:
         return
     lowered = title.lower()
@@ -195,9 +196,28 @@ def add_item(groups, key, label, title):
         return
 
     if key not in groups:
-        groups[key] = {"label": label, "titles": []}
+        groups[key] = {"label": label, "titles": [], "items": []}
     if title not in groups[key]["titles"]:
         groups[key]["titles"].append(title)
+        groups[key]["items"].append({"title": title, "author": author})
+    elif author:
+        for item in groups[key]["items"]:
+            if item["title"] == title and not item.get("author"):
+                item["author"] = author
+                break
+
+
+def ridi_author_from_meta(meta_lines):
+    """리디 캘린더에서 제목 바로 아래의 작가명을 읽는다."""
+    category_labels = {"RIDI ONLY", "신작", "세트전", "후속권 업데이트"}
+    for meta_line in meta_lines:
+        if MD_IMAGE_DETAIL_RE.search(meta_line):
+            continue
+        author = clean_markdown(meta_line)
+        if not author or author in category_labels:
+            continue
+        return author
+    return ""
 
 
 def ridi_icon_map(text: str):
@@ -256,6 +276,7 @@ def parse_ridi(year: int, month: int):
             pending["day"],
             f"{month}/{pending['day']} ({pending['weekday']})",
             title,
+            ridi_author_from_meta(pending["meta"]),
         )
         pending = None
 
@@ -364,6 +385,8 @@ def parse_aladin(year: int, month: int):
             if not cell:
                 continue
             title = cell.get_text(" ", strip=True)
+            author_cell = cell.find_next_sibling("td")
+            author = author_cell.get_text(" ", strip=True) if author_cell else ""
 
             category = None
             icon = row.find("img", class_="monthC_label_s")
@@ -375,7 +398,7 @@ def parse_aladin(year: int, month: int):
 
             categories = {category} if category else set()
             rendered = format_title(title, categories, ALADIN_CATEGORY_TAGS)
-            add_item(groups, day, f"{month}/{day} ({weekday})", rendered)
+            add_item(groups, day, f"{month}/{day} ({weekday})", rendered, author)
 
     if not groups:
         raise ValueError("알라딘 이번 달 출시작을 파싱하지 못했습니다.")

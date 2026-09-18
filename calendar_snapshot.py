@@ -8,7 +8,8 @@ from zoneinfo import ZoneInfo
 from monthly_release_report import parse_aladin, parse_ridi
 
 KST = ZoneInfo("Asia/Seoul")
-DEFAULT_OUTPUT = Path.home() / ".local/state/naver-series-set-checker/release_calendar.json"
+STATE_DIR = Path.home() / ".local/state/naver-series-set-checker"
+DEFAULT_OUTPUT = STATE_DIR / "release_calendar.json"
 
 
 def clean_calendar_title(source: str, title: str) -> str:
@@ -92,6 +93,17 @@ def build_snapshot(year: int, month: int) -> dict:
     return result
 
 
+def write_snapshot(path: Path, snapshot: dict) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    temp = path.with_suffix(path.suffix + ".tmp")
+    temp.write_text(json.dumps(snapshot, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    temp.replace(path)
+
+
+def monthly_output_path(year: int, month: int) -> Path:
+    return STATE_DIR / f"release_calendar_{year:04d}-{month:02d}.json"
+
+
 def main() -> int:
     now = datetime.now(KST)
     parser = argparse.ArgumentParser(description="리디/알라딘 월간 출시 일정을 대시보드용 JSON으로 저장")
@@ -104,12 +116,16 @@ def main() -> int:
         parser.error("--month는 1~12여야 합니다.")
 
     snapshot = build_snapshot(args.year, args.month)
-    args.output.parent.mkdir(parents=True, exist_ok=True)
-    temp = args.output.with_suffix(args.output.suffix + ".tmp")
-    temp.write_text(json.dumps(snapshot, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-    temp.replace(args.output)
 
-    print(f"저장: {args.output}")
+    archive_path = monthly_output_path(args.year, args.month)
+    write_snapshot(archive_path, snapshot)
+    print(f"월별 저장: {archive_path}")
+
+    # 기본 release_calendar.json은 현재 달을 가리키는 최신 별칭으로 유지한다.
+    if args.year == now.year and args.month == now.month:
+        write_snapshot(args.output, snapshot)
+        print(f"현재 달 저장: {args.output}")
+
     print(f"총 {snapshot['total']}개")
     return 0 if any(v.get("ok") for v in snapshot["sources"].values()) else 1
 

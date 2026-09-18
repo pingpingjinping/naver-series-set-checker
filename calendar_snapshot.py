@@ -14,13 +14,15 @@ STATE_DIR = Path.home() / ".local/state/naver-series-set-checker"
 DEFAULT_OUTPUT = STATE_DIR / "release_calendar.json"
 
 
-def clean_calendar_title(source: str, title: str) -> str:
-    exclusive = False
-    if source == "ridi" and "[RIDI ONLY]" in title:
-        exclusive = True
-    elif source == "aladin" and "[알라딘 독점]" in title:
-        exclusive = True
+def title_is_exclusive(source: str, title: str) -> bool:
+    if source == "ridi":
+        return "[RIDI ONLY]" in title
+    if source == "aladin":
+        return "[알라딘 독점]" in title
+    return False
 
+
+def clean_calendar_title(source: str, title: str) -> str:
     for label in (
         "⭐ [RIDI ONLY]",
         "⭐ [알라딘 독점]",
@@ -31,13 +33,7 @@ def clean_calendar_title(source: str, title: str) -> str:
     ):
         title = title.replace(label, "")
 
-    title = " ".join(title.split()).strip()
-    if not title:
-        return ""
-
-    if exclusive:
-        return f"{'⭐' if source == 'ridi' else '🌟'} {title}"
-    return title
+    return " ".join(title.split()).strip()
 
 
 def normalize_title_key(title: str) -> str:
@@ -68,7 +64,9 @@ def source_items(source: str, groups: dict) -> list[dict]:
             records = [{"title": title, "author": ""} for title in group.get("titles", [])]
 
         for record in records:
-            title = clean_calendar_title(source, record.get("title", ""))
+            raw_title = record.get("title", "")
+            exclusive = title_is_exclusive(source, raw_title)
+            title = clean_calendar_title(source, raw_title)
             if not title:
                 continue
             items.append({
@@ -76,6 +74,7 @@ def source_items(source: str, groups: dict) -> list[dict]:
                 "source": source,
                 "title": title,
                 "author": " ".join(str(record.get("author", "")).split()).strip(),
+                "exclusive": exclusive,
             })
     return items
 
@@ -113,6 +112,7 @@ def dedupe_items(items: list[dict]) -> list[dict]:
                 "source": item["source"],
                 "title": title,
                 "author": item.get("author", ""),
+                "exclusive": bool(item.get("exclusive")),
                 "sources": [item["source"]],
             }
             continue
@@ -122,10 +122,10 @@ def dedupe_items(items: list[dict]) -> list[dict]:
 
         entry["author"] = choose_author(entry.get("author", ""), item.get("author", ""))
 
-        # 양쪽 사이트에 모두 존재하면 독점 별표는 의미가 없으므로 제거.
+        # 같은 작품이 양쪽 사이트에 있으면 독점 상태가 아니므로 해제한다.
         if len(entry["sources"]) > 1:
             entry["source"] = "both"
-            entry["title"] = entry["title"].lstrip("⭐🌟").strip()
+            entry["exclusive"] = False
 
     result = list(merged.values())
     for item in result:

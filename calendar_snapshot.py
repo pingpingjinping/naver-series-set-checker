@@ -62,16 +62,41 @@ def normalize_title_key(title: str) -> str:
 def source_items(source: str, groups: dict) -> list[dict]:
     items = []
     for day in sorted(groups):
-        for title in groups[day].get("titles", []):
-            title = clean_calendar_title(source, title)
+        group = groups[day]
+        records = group.get("items")
+        if not records:
+            records = [{"title": title, "author": ""} for title in group.get("titles", [])]
+
+        for record in records:
+            title = clean_calendar_title(source, record.get("title", ""))
             if not title:
                 continue
             items.append({
                 "day": int(day),
                 "source": source,
                 "title": title,
+                "author": " ".join(str(record.get("author", "")).split()).strip(),
             })
     return items
+
+
+def choose_author(current: str, incoming: str) -> str:
+    current = " ".join((current or "").split()).strip()
+    incoming = " ".join((incoming or "").split()).strip()
+    if not current:
+        return incoming
+    if not incoming:
+        return current
+    if current.casefold() == incoming.casefold():
+        return current
+
+    current_vague = bool(re.search(r"외\s*\d+명", current))
+    incoming_vague = bool(re.search(r"외\s*\d+명", incoming))
+    if current_vague != incoming_vague:
+        return incoming if current_vague else current
+
+    # 양쪽 표기가 다르면 더 구체적인 쪽(보통 이름이 더 많이 적힌 쪽)을 사용.
+    return incoming if len(incoming) > len(current) else current
 
 
 def dedupe_items(items: list[dict]) -> list[dict]:
@@ -87,12 +112,15 @@ def dedupe_items(items: list[dict]) -> list[dict]:
                 "day": int(item["day"]),
                 "source": item["source"],
                 "title": title,
+                "author": item.get("author", ""),
                 "sources": [item["source"]],
             }
             continue
 
         if item["source"] not in entry["sources"]:
             entry["sources"].append(item["source"])
+
+        entry["author"] = choose_author(entry.get("author", ""), item.get("author", ""))
 
         # 양쪽 사이트에 모두 존재하면 독점 별표는 의미가 없으므로 제거.
         if len(entry["sources"]) > 1:

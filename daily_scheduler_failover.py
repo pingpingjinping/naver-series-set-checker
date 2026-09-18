@@ -12,9 +12,10 @@ KST = ZoneInfo("Asia/Seoul")
 WORKFLOWS = [
     ("Series", "series.yml"),
     ("Price", "price.yml"),
-    ("Ridi", "ridi.yml"),
-    ("Aladin", "aladin.yml"),
 ]
+
+# Ridi/Aladin are checked directly from WalnutPi near month-end.
+# Keep their GitHub workflows manual-only because GitHub runner IPs are unreliable for those sites.
 
 
 def env(name: str, default: str = "") -> str:

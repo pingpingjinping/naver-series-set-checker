@@ -41,7 +41,7 @@ def load_items():
 def post_discord(content):
     if not DISCORD_WEBHOOK:
         raise RuntimeError("DISCORD_WEBHOOK secret이 설정되어 있지 않습니다.")
-    r = requests.post(DISCORD_WEBHOOK, json={"content": content}, timeout=30)
+    r = requests.post(DISCORD_WEBHOOK, json={"content": content, "flags": 4}, timeout=30)
     r.raise_for_status()
 
 

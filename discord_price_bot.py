@@ -61,10 +61,6 @@ ALLOWED_USER_ID = parse_id("DISCORD_ALLOWED_USER_ID", DISCORD_ALLOWED_USER_ID)
 GUILD_ID = parse_id("DISCORD_GUILD_ID", DISCORD_GUILD_ID)
 
 
-def actions_url() -> str:
-    return f"https://github.com/{GITHUB_REPO}/actions"
-
-
 def dispatch_workflow(workflow: str, inputs: dict | None = None) -> None:
     url = (
         f"https://api.github.com/repos/{GITHUB_REPO}/actions/workflows/"
@@ -133,16 +129,12 @@ async def run_action(
     try:
         await asyncio.to_thread(dispatch_workflow, workflow, inputs)
     except Exception as exc:
-        await interaction.followup.send(
-            f"❌ {label} 요청 실패\n`{type(exc).__name__}: {exc}`",
-            ephemeral=True,
+        await interaction.edit_original_response(
+            content=f"❌ {label} 요청 실패\n`{type(exc).__name__}: {exc}`"
         )
         return
 
-    await interaction.followup.send(
-        f"✅ {label} 요청을 GitHub Actions에 보냈어.\n<{actions_url()}>",
-        ephemeral=True,
-    )
+    await interaction.delete_original_response()
 
 
 @bot.tree.command(name="가격", description="등록된 상품의 가격을 지금 확인합니다.")

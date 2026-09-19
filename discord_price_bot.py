@@ -12,6 +12,19 @@ DISCORD_ALLOWED_USER_ID = os.environ.get("DISCORD_ALLOWED_USER_ID", "").strip()
 DISCORD_GUILD_ID = os.environ.get("DISCORD_GUILD_ID", "").strip()
 
 GITHUB_TOKEN = os.environ.get("GITHUB_TOKEN", "").strip()
+GITHUB_TOKEN_FILE = os.environ.get(
+    "GITHUB_TOKEN_FILE",
+    "~/.config/naver-series-set-checker/github_token",
+).strip()
+
+if not GITHUB_TOKEN and GITHUB_TOKEN_FILE:
+    token_path = os.path.expanduser(GITHUB_TOKEN_FILE)
+    try:
+        with open(token_path, "r", encoding="utf-8") as f:
+            GITHUB_TOKEN = f.read().strip()
+    except FileNotFoundError:
+        pass
+
 GITHUB_REPO = os.environ.get(
     "GITHUB_REPO",
     "pingpingjinping/naver-series-set-checker",
@@ -39,7 +52,10 @@ def parse_id(name: str, value: str):
 
 required("DISCORD_BOT_TOKEN", DISCORD_BOT_TOKEN)
 required("DISCORD_ALLOWED_USER_ID", DISCORD_ALLOWED_USER_ID)
-required("GITHUB_TOKEN", GITHUB_TOKEN)
+if not GITHUB_TOKEN:
+    raise RuntimeError(
+        "GITHUB_TOKEN 환경변수 또는 GITHUB_TOKEN_FILE의 토큰 파일이 필요합니다."
+    )
 
 ALLOWED_USER_ID = parse_id("DISCORD_ALLOWED_USER_ID", DISCORD_ALLOWED_USER_ID)
 GUILD_ID = parse_id("DISCORD_GUILD_ID", DISCORD_GUILD_ID)

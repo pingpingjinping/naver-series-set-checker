@@ -109,3 +109,82 @@ Steam 번들과 STOVE 컬렉션처럼 기본적으로 항상 적용되는 할인
 ```
 
 또는 GitHub Actions의 `WalnutPi Price Watch` 워크플로를 직접 실행하면 됩니다.
+
+
+---
+
+## Discord 슬래시 명령으로 가격 관리
+
+WalnutPi에 작은 Discord 봇을 상시 실행해 두면 Discord에서 GitHub Actions를 리모컨처럼 호출할 수 있습니다.
+실제 가격 조회/상태 저장은 기존 GitHub Actions가 담당하고, Pi의 봇은 명령 수신과 workflow_dispatch 호출만 수행합니다.
+
+지원 명령:
+
+- `/가격` → `price.yml`을 강제 실행해서 지금 가격 확인
+- `/목록` → `check.yml`을 실행하고 현재 가격 목록을 Discord로 전송
+- `/추가 url:<URL>` → 가격 추적 URL 추가
+- `/삭제 numbers:1,3` → 현재 목록 번호 기준 삭제
+
+명령은 `DISCORD_ALLOWED_USER_ID`에 지정한 사용자 한 명만 실행할 수 있습니다.
+일반 Discord 메시지 내용은 읽지 않으므로 Message Content Intent는 필요하지 않습니다.
+
+### 1. Discord Bot 만들기
+
+Discord Developer Portal에서 Application/Bot을 만든 뒤 서버에 초대합니다.
+슬래시 명령을 사용할 수 있도록 `applications.commands` scope를 포함하세요.
+
+필요한 값:
+
+- Bot Token → `DISCORD_BOT_TOKEN`
+- 본인 Discord User ID → `DISCORD_ALLOWED_USER_ID`
+- 봇을 넣은 서버 ID → `DISCORD_GUILD_ID` (권장)
+
+`DISCORD_GUILD_ID`를 넣으면 해당 서버에 명령을 즉시 동기화합니다.
+비워두면 글로벌 슬래시 명령으로 등록되어 Discord에 반영되기까지 시간이 걸릴 수 있습니다.
+
+### 2. GitHub Token 만들기
+
+Fine-grained Personal Access Token을 권장합니다.
+
+- Repository access: `pingpingjinping/naver-series-set-checker`
+- Repository permissions → Actions: `Read and write`
+
+이 토큰은 봇이 workflow_dispatch를 호출하는 용도로만 사용합니다.
+저장소 파일 수정은 기존 GitHub Actions의 `GITHUB_TOKEN`이 담당합니다.
+
+### 3. WalnutPi 설치
+
+저장소가 `/home/pi/.local/share/naver-series-set-checker`에 설치되어 있다고 가정합니다.
+
+```bash
+cd /home/pi/.local/share/naver-series-set-checker
+git pull
+
+python3 -m venv .venv
+.venv/bin/pip install -r requirements.txt
+.venv/bin/pip install -r requirements-discord-bot.txt
+
+mkdir -p /home/pi/.config/naver-series-set-checker
+cp discord-price-bot.env.example \
+  /home/pi/.config/naver-series-set-checker/discord-price-bot.env
+chmod 600 /home/pi/.config/naver-series-set-checker/discord-price-bot.env
+```
+
+그 다음 `discord-price-bot.env`에 Discord/GitHub 값을 입력합니다.
+
+서비스 설치:
+
+```bash
+sudo cp systemd/walnutpi-discord-price-bot.service /etc/systemd/system/
+sudo systemctl daemon-reload
+sudo systemctl enable --now walnutpi-discord-price-bot.service
+```
+
+상태/로그 확인:
+
+```bash
+systemctl status walnutpi-discord-price-bot.service
+journalctl -u walnutpi-discord-price-bot.service -f
+```
+
+봇은 가격 크롤링 자체를 하지 않고 Discord Gateway 연결과 GitHub API 호출만 담당합니다.

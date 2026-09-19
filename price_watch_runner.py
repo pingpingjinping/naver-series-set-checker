@@ -15,6 +15,75 @@ RELEASE_LABELS = {
 }
 
 
+def _looks_japanese(text: str) -> bool:
+    return bool(re.search(r"[\u3040-\u30ff]", text or ""))
+
+
+def _preferred_title(candidates):
+    cleaned = [pw.clean_text(str(x or "")) for x in candidates]
+    cleaned = [x for x in cleaned if x]
+    if not cleaned:
+        return ""
+
+    for title in cleaned:
+        if not _looks_japanese(title):
+            return title
+    return cleaned[-1]
+
+
+def steam_app_display_title(appid: str):
+    titles = []
+    for cc, lang in [("kr", "koreana"), ("us", "english")]:
+        try:
+            info = pw.steam_appdetails(appid, cc, lang)
+        except Exception:
+            info = None
+        if info and info.get("name"):
+            titles.append(info["name"])
+    return _preferred_title(titles)
+
+
+def _steam_bundle_name(bundle_id: str, cc: str, lang: str):
+    headers = {
+        **pw.HEADERS,
+        "Accept": "application/json, text/javascript, */*; q=0.01",
+        "Referer": "https://store.steampowered.com/",
+        "X-Requested-With": "XMLHttpRequest",
+    }
+    r = pw.requests.get(
+        "https://store.steampowered.com/actions/ajaxresolvebundles",
+        headers=headers,
+        params={"bundleids": bundle_id, "cc": cc.upper(), "l": lang},
+        timeout=30,
+    )
+    r.raise_for_status()
+    data = r.json()
+    if not isinstance(data, list) or not data:
+        return ""
+
+    bundle = next(
+        (x for x in data if isinstance(x, dict) and str(x.get("bundleid")) == str(bundle_id)),
+        None,
+    )
+    if bundle is None and isinstance(data[0], dict):
+        bundle = data[0]
+    if not bundle:
+        return ""
+    return pw.clean_text(str(bundle.get("name") or ""))
+
+
+def steam_bundle_display_title(bundle_id: str):
+    titles = []
+    for cc, lang in [("kr", "koreana"), ("us", "english")]:
+        try:
+            title = _steam_bundle_name(bundle_id, cc, lang)
+        except Exception:
+            title = ""
+        if title:
+            titles.append(title)
+    return _preferred_title(titles)
+
+
 def _steam_price_result(info: dict, appid: str, cc: str, lang: str, symbol: str, region: str, currency: str):
     po = info.get("price_overview")
     if not po or po.get("currency") != currency:
@@ -109,12 +178,25 @@ _original_parse_page = pw.parse_page
 
 def parse_page_with_history(url: str):
     host = pw.urlparse(url).netloc.lower()
-    app_match = pw.STEAM_APP_RE.search(url) if host.endswith("store.steampowered.com") else None
+    is_steam = host.endswith("store.steampowered.com")
+    app_match = pw.STEAM_APP_RE.search(url) if is_steam else None
+    bundle_match = pw.STEAM_BUNDLE_RE.search(url) if is_steam else None
 
     if app_match:
         item = parse_steam_app_with_release(url, app_match.group(1))
     else:
         item = _original_parse_page(url)
+
+    # 가격/지역 판정과 표시 제목 언어를 분리한다.
+    # 한국어 Steam 제목을 우선하고, 일본어로 떨어질 경우 영어 제목으로 fallback.
+    if app_match:
+        display_title = steam_app_display_title(app_match.group(1))
+        if display_title:
+            item["title"] = display_title
+    elif bundle_match:
+        display_title = steam_bundle_display_title(bundle_match.group(1))
+        if display_title:
+            item["title"] = display_title
 
     release_status = item.get("release_status")
     if release_status in (None, "RELEASED"):
@@ -199,6 +281,7 @@ def send_discord(index: int, prev: dict, current: dict, url: str):
         discount_line = ""
 
     history_line = ih.history_low_lines(current, include_links=False)
+    history_fire = " 🔥" if ih.is_current_history_low(current) else ""
 
     pw.post_discord(
         f"{change_header(prev, current)}\n\n"
@@ -207,7 +290,7 @@ def send_discord(index: int, prev: dict, current: dict, url: str):
         f"{release_status_line(prev, current)}"
         f"{release_date_line(current)}"
         f"이전: `{prev.get('price', '알 수 없음')}`\n"
-        f"현재: `{current['price']}`\n"
+        f"현재: `{current['price']}`{history_fire}\n"
         f"{sale_change_status_line(prev, current)}"
         f"{pw.base_discount_line(current)}"
         f"{discount_line}"

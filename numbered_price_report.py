@@ -60,18 +60,15 @@ def main():
                 price = item.get("price") or "알 수 없음"
                 region = item.get("region") or ""
                 region_text = f" · {region}" if region else ""
-                lines.append(f"**#{i} · {title}**")
+                lines.append(f"**#{i} · [{title}]({url})**")
                 lines.append(f"현재: `{price}`{region_text}")
                 history = ih.history_low_lines(item, include_links=False).rstrip()
                 if history:
                     lines.extend(history.splitlines())
             else:
-                lines.append(f"**#{i} · 조회 정보 없음**")
-            lines.append(f"<{url}>")
+                lines.append(f"**#{i} · [조회 정보 없음]({url})**")
             lines.append("")
 
-    lines.append("삭제할 때 Actions의 `삭제할 번호들`에 예: `1,3` 입력")
-    lines.append("")
     lines.append(f"⚙️ **URL 추가/삭제:** <{ACTIONS_URL}>")
 
     chunks = []

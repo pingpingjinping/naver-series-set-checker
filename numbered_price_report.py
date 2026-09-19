@@ -60,8 +60,9 @@ def main():
                 price = item.get("price") or "알 수 없음"
                 region = item.get("region") or ""
                 region_text = f" · {region}" if region else ""
+                history_fire = " 🔥" if ih.is_current_history_low(item) else ""
                 lines.append(f"**#{i} · [{title}]({url})**")
-                lines.append(f"현재: `{price}`{region_text}")
+                lines.append(f"현재: `{price}`{history_fire}{region_text}")
                 history = ih.history_low_lines(item, include_links=False).rstrip()
                 if history:
                     lines.extend(history.splitlines())

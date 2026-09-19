@@ -227,8 +227,6 @@ def history_low_lines(item: dict, include_links=True):
         discount = f" (-{cut}%)" if cut > 0 else ""
         date_text = f" · {date}" if date else ""
         lines.append(f"Steam 역대 최저가 (ITAD): **{low}{discount}**{date_text}")
-        if is_current_history_low(item):
-            lines.append("🔥 **현재가 = Steam 역대 최저가**")
 
     if include_links:
         links = []

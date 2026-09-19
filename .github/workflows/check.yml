@@ -70,30 +70,12 @@ jobs:
           REMOVE_NUMBERS: ${{ inputs.remove_numbers }}
         run: python manage_price_urls.py
 
-      - name: Check Naver Series
-        if: ${{ inputs.add_urls == '' && inputs.remove_numbers == '' && !inputs.send_current_prices }}
-        env:
-          DISCORD_WEBHOOK: ${{ secrets.SERIES_DISCORD_WEBHOOK }}
-        run: python check.py
-
       - name: Check prices
         env:
           DISCORD_WEBHOOK: ${{ secrets.PRICE_DISCORD_WEBHOOK }}
           ITAD_API_KEY: ${{ secrets.ITAD_API_KEY }}
           SEND_CURRENT_REPORT: "0"
         run: python price_watch_runner.py
-
-      - name: Check Ridi comic calendar
-        if: ${{ inputs.add_urls == '' && inputs.remove_numbers == '' && !inputs.send_current_prices }}
-        env:
-          DISCORD_WEBHOOK: ${{ secrets.SERIES_DISCORD_WEBHOOK }}
-        run: python ridi_calendar_watch.py
-
-      - name: Check Aladin ebook comic calendar
-        if: ${{ inputs.add_urls == '' && inputs.remove_numbers == '' && !inputs.send_current_prices }}
-        env:
-          DISCORD_WEBHOOK: ${{ secrets.SERIES_DISCORD_WEBHOOK }}
-        run: python aladin_calendar_watch.py
 
       - name: Send numbered current price list
         if: ${{ always() && inputs.send_current_prices }}
@@ -104,14 +86,14 @@ jobs:
       - name: Save state and URL list
         if: ${{ always() }}
         run: |
-          if git diff --quiet -- state.json price_state.json price_urls.txt ridi_calendar_state.json aladin_calendar_state.json; then
-            echo "상태/URL 파일 변경 없음"
+          if git diff --quiet -- price_state.json price_urls.txt; then
+            echo "가격 상태/URL 파일 변경 없음"
             exit 0
           fi
 
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add state.json price_state.json price_urls.txt ridi_calendar_state.json aladin_calendar_state.json
+          git add price_state.json price_urls.txt
           git commit -m "chore: update watch state and price URLs"
 
           for attempt in 1 2 3 4; do

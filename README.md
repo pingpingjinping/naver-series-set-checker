@@ -170,7 +170,11 @@ cp discord-price-bot.env.example \
 chmod 600 /home/pi/.config/naver-series-set-checker/discord-price-bot.env
 ```
 
-그 다음 `discord-price-bot.env`에 Discord/GitHub 값을 입력합니다.
+그 다음 `discord-price-bot.env`에 Discord 값을 입력합니다.
+
+기존 WalnutPi GitHub 토큰이 `/home/pi/.config/naver-series-set-checker/github_token`에 있으면
+`GITHUB_TOKEN`을 다시 복사할 필요 없이 그대로 재사용합니다. 다른 경로를 쓸 때만
+`GITHUB_TOKEN_FILE`을 변경하세요.
 
 서비스 설치:
 

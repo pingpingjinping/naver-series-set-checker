@@ -49,6 +49,8 @@
       "discount_percent": 77,
       "base_discount": 0,
       "base_discount_label": "",
+      "release_status": "RELEASED",
+      "release_date": "2019年3月25日",
       "steam_history_low": "¥1,973",
       "steam_history_low_amount": 1973,
       "steam_history_low_currency": "JPY",
@@ -75,6 +77,20 @@
       "itad_game_url": "https://isthereanydeal.com/game/id:018d937f-4f18-7206-9727-16751fa93d26/",
       "steamdb_url": "https://steamdb.info/bundle/20340/",
       "url": "https://store.steampowered.com/bundle/20340/Atelier_Mysterious_Trilogy_Deluxe_Pack/"
+    },
+    "https://store.steampowered.com/app/3867170/Sengoku_Rance/": {
+      "title": "Sengoku Rance",
+      "price": "미출시",
+      "region": "한국",
+      "discount_end": "",
+      "sale_active": null,
+      "discount_percent": 0,
+      "base_discount": 0,
+      "base_discount_label": "",
+      "release_status": "UNRELEASED",
+      "release_date": "2026년 3분기",
+      "steamdb_url": "https://steamdb.info/app/3867170/",
+      "url": "https://store.steampowered.com/app/3867170/Sengoku_Rance/"
     }
   }
 }

@@ -268,7 +268,7 @@ def send_discord(new_items):
     for content in chunks:
         r = requests.post(
             DISCORD_WEBHOOK,
-            json={"content": content},
+            json={"content": content, "flags": 4},
             timeout=30,
         )
         r.raise_for_status()

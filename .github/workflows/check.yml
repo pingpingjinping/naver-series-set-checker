@@ -71,7 +71,7 @@ jobs:
         run: python manage_price_urls.py
 
       - name: Check Naver Series
-        if: ${{ inputs.add_urls == '' && inputs.remove_numbers == '' }}
+        if: ${{ inputs.add_urls == '' && inputs.remove_numbers == '' && !inputs.send_current_prices }}
         env:
           DISCORD_WEBHOOK: ${{ secrets.SERIES_DISCORD_WEBHOOK }}
         run: python check.py
@@ -84,13 +84,13 @@ jobs:
         run: python price_watch_runner.py
 
       - name: Check Ridi comic calendar
-        if: ${{ inputs.add_urls == '' && inputs.remove_numbers == '' }}
+        if: ${{ inputs.add_urls == '' && inputs.remove_numbers == '' && !inputs.send_current_prices }}
         env:
           DISCORD_WEBHOOK: ${{ secrets.SERIES_DISCORD_WEBHOOK }}
         run: python ridi_calendar_watch.py
 
       - name: Check Aladin ebook comic calendar
-        if: ${{ inputs.add_urls == '' && inputs.remove_numbers == '' }}
+        if: ${{ inputs.add_urls == '' && inputs.remove_numbers == '' && !inputs.send_current_prices }}
         env:
           DISCORD_WEBHOOK: ${{ secrets.SERIES_DISCORD_WEBHOOK }}
         run: python aladin_calendar_watch.py

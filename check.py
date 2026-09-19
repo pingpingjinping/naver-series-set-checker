@@ -252,7 +252,7 @@ def send_discord(new_items):
     current = "🆕 **네이버 시리즈 '세트' 새 작품 감지**\n"
 
     for item in new_items:
-        line = f"\n**{item['title']}**"
+        line = f"\n**[{item['title']}]({item['url']})**"
         if item.get("discount_end"):
             line += f" (~{item['discount_end']})"
         line += "\n"

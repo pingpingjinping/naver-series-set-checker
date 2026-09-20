@@ -1,13 +1,34 @@
 {
-  "date": "2026-09-20",
-  "generatedAt": "2026-09-20T06:10:24.953054+09:00",
+  "date": "2026-09-21",
+  "generatedAt": "2026-09-21T06:10:33.948084+09:00",
   "items": [
     {
-      "id": "14761426",
-      "title": "금발의 여장군은 전 적국의 호적수와 혼인한다 [4권 세트] (총 4권/미완결)",
-      "url": "https://series.naver.com/comic/detail.series?productNo=14761426",
-      "discount": "25% 할인",
+      "id": "14757643",
+      "title": "새벽의 연화 [47권 세트] (총 47권/미완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=14757643",
+      "discount": "18% 할인",
+      "discount_end": "2026-10-20까지"
+    },
+    {
+      "id": "14757683",
+      "title": "NG 라이프 [9권 세트] (총 9권/완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=14757683",
+      "discount": "18% 할인",
+      "discount_end": "2026-10-20까지"
+    },
+    {
+      "id": "14688635",
+      "title": "하자인간 [53화 세트] (총 53화/완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=14688635",
+      "discount": "",
       "discount_end": ""
+    },
+    {
+      "id": "14688411",
+      "title": "종말권유 [63화 세트] (총 63화/완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=14688411",
+      "discount": "25% 할인",
+      "discount_end": "2026-09-27까지"
     }
   ]
 }

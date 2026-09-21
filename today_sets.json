@@ -1,34 +1,69 @@
 {
-  "date": "2026-09-21",
-  "generatedAt": "2026-09-21T06:10:33.948084+09:00",
+  "date": "2026-09-22",
+  "generatedAt": "2026-09-22T06:10:51.413300+09:00",
   "items": [
     {
-      "id": "14757643",
-      "title": "새벽의 연화 [47권 세트] (총 47권/미완결)",
-      "url": "https://series.naver.com/comic/detail.series?productNo=14757643",
-      "discount": "18% 할인",
-      "discount_end": "2026-10-20까지"
-    },
-    {
-      "id": "14757683",
-      "title": "NG 라이프 [9권 세트] (총 9권/완결)",
-      "url": "https://series.naver.com/comic/detail.series?productNo=14757683",
-      "discount": "18% 할인",
-      "discount_end": "2026-10-20까지"
-    },
-    {
-      "id": "14688635",
-      "title": "하자인간 [53화 세트] (총 53화/완결)",
-      "url": "https://series.naver.com/comic/detail.series?productNo=14688635",
+      "id": "14757497",
+      "title": "사막의 하렘 [11권 세트] (총 11권/완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=14757497",
       "discount": "",
       "discount_end": ""
     },
     {
-      "id": "14688411",
-      "title": "종말권유 [63화 세트] (총 63화/완결)",
-      "url": "https://series.naver.com/comic/detail.series?productNo=14688411",
-      "discount": "25% 할인",
-      "discount_end": "2026-09-27까지"
+      "id": "14757486",
+      "title": "유령성의 남편님 [4권 세트] (총 4권/미완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=14757486",
+      "discount": "27% 할인",
+      "discount_end": "2026-10-21까지"
+    },
+    {
+      "id": "14757500",
+      "title": "아라시 군의 안는 베개 [6권 세트] (총 6권/완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=14757500",
+      "discount": "28% 할인",
+      "discount_end": "2026-10-21까지"
+    },
+    {
+      "id": "14757499",
+      "title": "고양이와 키스 [6권 세트] (총 6권/완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=14757499",
+      "discount": "28% 할인",
+      "discount_end": "2026-10-21까지"
+    },
+    {
+      "id": "14757498",
+      "title": "나츠메 선배가 들이대는 나날 [7권 세트] (총 7권/완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=14757498",
+      "discount": "30% 할인",
+      "discount_end": "2026-10-21까지"
+    },
+    {
+      "id": "14757488",
+      "title": "사랑의 시작 [7권 세트] (총 7권/완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=14757488",
+      "discount": "28% 할인",
+      "discount_end": "2026-10-21까지"
+    },
+    {
+      "id": "14757487",
+      "title": "약혼자는 익애하는 척 [6권 세트] (총 6권/미완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=14757487",
+      "discount": "30% 할인",
+      "discount_end": "2026-10-21까지"
+    },
+    {
+      "id": "14669110",
+      "title": "마법진 구루구루-디지털버전[단행본][16권 세트] (총 16권/완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=14669110",
+      "discount": "30% 할인",
+      "discount_end": ""
+    },
+    {
+      "id": "14769680",
+      "title": "시든 꽃에 눈물을 [6권 세트] (총 6권/미완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=14769680",
+      "discount": "",
+      "discount_end": ""
     }
   ]
 }

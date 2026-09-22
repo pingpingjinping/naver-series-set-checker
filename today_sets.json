@@ -1,69 +1,216 @@
 {
-  "date": "2026-09-22",
-  "generatedAt": "2026-09-22T06:10:51.413300+09:00",
+  "date": "2026-09-23",
+  "generatedAt": "2026-09-23T06:11:40.251470+09:00",
   "items": [
     {
-      "id": "14757497",
-      "title": "사막의 하렘 [11권 세트] (총 11권/완결)",
-      "url": "https://series.naver.com/comic/detail.series?productNo=14757497",
+      "id": "14648146",
+      "title": "신 울어라, 펜 [11권 세트] (총 11권/완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=14648146",
+      "discount": "30% 할인",
+      "discount_end": "2026-10-23까지"
+    },
+    {
+      "id": "14781571",
+      "title": "소년탐정 김전일 시즌2 [18권 세트] (총 18권/완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=14781571",
+      "discount": "28% 할인",
+      "discount_end": ""
+    },
+    {
+      "id": "14781566",
+      "title": "소년탐정 김전일 시즌2 Returns [14권 세트] (총 14권/완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=14781566",
+      "discount": "28% 할인",
+      "discount_end": ""
+    },
+    {
+      "id": "14781564",
+      "title": "소년탐정 김전일 30th [4권 세트] (총 4권/완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=14781564",
+      "discount": "28% 할인",
+      "discount_end": ""
+    },
+    {
+      "id": "14781563",
+      "title": "소년탐정 김전일 [37권 세트] (총 37권/완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=14781563",
+      "discount": "28% 할인",
+      "discount_end": ""
+    },
+    {
+      "id": "14781559",
+      "title": "김전일 37세의 사건부 [18권 세트] (총 18권/완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=14781559",
+      "discount": "28% 할인",
+      "discount_end": ""
+    },
+    {
+      "id": "14773661",
+      "title": "모브코의 사랑 [24권 세트] (총 24권/미완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=14773661",
+      "discount": "30% 할인",
+      "discount_end": "2026-10-26까지"
+    },
+    {
+      "id": "14773660",
+      "title": "향기로운 꽃은 늠름하게 핀다 [21권 세트] (총 21권/미완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=14773660",
+      "discount": "28% 할인",
+      "discount_end": "2026-10-26까지"
+    },
+    {
+      "id": "14773655",
+      "title": "어떤 마술의 금서목록[코믹] [33권 세트] (총 33권/미완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=14773655",
+      "discount": "30% 할인",
+      "discount_end": "2026-10-26까지"
+    },
+    {
+      "id": "14773654",
+      "title": "황천의 츠가이 [12권 세트] (총 12권/미완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=14773654",
+      "discount": "28% 할인",
+      "discount_end": "2026-10-26까지"
+    },
+    {
+      "id": "14757684",
+      "title": "메달리스트 [14권 세트] (총 14권/미완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=14757684",
+      "discount": "28% 할인",
+      "discount_end": "2026-10-22까지"
+    },
+    {
+      "id": "14773667",
+      "title": "귀족에서 서민이 되어서 약혼을 파기당했습니다! [7권 세트] (총 7권/미완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=14773667",
+      "discount": "28% 할인",
+      "discount_end": "2026-10-26까지"
+    },
+    {
+      "id": "14773666",
+      "title": "약한 공주님은 살아남고 싶어! [4권 세트] (총 4권/미완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=14773666",
+      "discount": "28% 할인",
+      "discount_end": "2026-10-26까지"
+    },
+    {
+      "id": "14773665",
+      "title": "삐딱한 기사와 천진난만한 공주님 [4권 세트] (총 4권/미완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=14773665",
+      "discount": "30% 할인",
+      "discount_end": "2026-10-26까지"
+    },
+    {
+      "id": "14773664",
+      "title": "시오타 선생님과 아마이 양 [7권 세트] (총 7권/완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=14773664",
+      "discount": "30% 할인",
+      "discount_end": "2026-10-26까지"
+    },
+    {
+      "id": "14773663",
+      "title": "놓친 물고기는 컸지만 잡은 물고기가 너무 컸던 건 [10권 세트] (총 10권/미완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=14773663",
+      "discount": "28% 할인",
+      "discount_end": "2026-10-26까지"
+    },
+    {
+      "id": "14773662",
+      "title": "언성 신데렐라 병원 약사 아오이 미도리 [15권 세트] (총 15권/완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=14773662",
+      "discount": "30% 할인",
+      "discount_end": "2026-10-26까지"
+    },
+    {
+      "id": "14773659",
+      "title": "무능한 나나 [14권 세트] (총 14권/미완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=14773659",
+      "discount": "28% 할인",
+      "discount_end": "2026-10-26까지"
+    },
+    {
+      "id": "14773653",
+      "title": "판도라 하츠(PandoraHearts) [24권 세트] (총 24권/완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=14773653",
+      "discount": "28% 할인",
+      "discount_end": "2026-10-26까지"
+    },
+    {
+      "id": "14773658",
+      "title": "어떤 과학의 초전자포 [20권 세트] (총 20권/미완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=14773658",
+      "discount": "28% 할인",
+      "discount_end": "2026-10-26까지"
+    },
+    {
+      "id": "14773657",
+      "title": "마녀대전 이능의 마녀 32인은 서로 죽인다 [14권 세트] (총 14권/미완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=14773657",
+      "discount": "28% 할인",
+      "discount_end": "2026-10-26까지"
+    },
+    {
+      "id": "14773656",
+      "title": "종말의 발키리 [26권 세트] (총 26권/미완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=14773656",
+      "discount": "30% 할인",
+      "discount_end": "2026-10-26까지"
+    },
+    {
+      "id": "14770195",
+      "title": "스위츠 인 슈트 [6권 세트] (총 6권/완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=14770195",
       "discount": "",
       "discount_end": ""
     },
     {
-      "id": "14757486",
-      "title": "유령성의 남편님 [4권 세트] (총 4권/미완결)",
-      "url": "https://series.naver.com/comic/detail.series?productNo=14757486",
-      "discount": "27% 할인",
-      "discount_end": "2026-10-21까지"
-    },
-    {
-      "id": "14757500",
-      "title": "아라시 군의 안는 베개 [6권 세트] (총 6권/완결)",
-      "url": "https://series.naver.com/comic/detail.series?productNo=14757500",
+      "id": "14757685",
+      "title": "키스 앤 네버 크라이 [11권 세트] (총 11권/완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=14757685",
       "discount": "28% 할인",
-      "discount_end": "2026-10-21까지"
+      "discount_end": "2026-10-22까지"
     },
     {
-      "id": "14757499",
-      "title": "고양이와 키스 [6권 세트] (총 6권/완결)",
-      "url": "https://series.naver.com/comic/detail.series?productNo=14757499",
-      "discount": "28% 할인",
-      "discount_end": "2026-10-21까지"
+      "id": "14688650",
+      "title": "노빠꾸 최하영 [91화 세트] (총 91화/완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=14688650",
+      "discount": "25% 할인",
+      "discount_end": "2026-09-29까지"
     },
     {
-      "id": "14757498",
-      "title": "나츠메 선배가 들이대는 나날 [7권 세트] (총 7권/완결)",
-      "url": "https://series.naver.com/comic/detail.series?productNo=14757498",
-      "discount": "30% 할인",
-      "discount_end": "2026-10-21까지"
+      "id": "14688639",
+      "title": "이게 웬 떡 [91화 세트] (총 91화/완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=14688639",
+      "discount": "25% 할인",
+      "discount_end": "2026-09-29까지"
     },
     {
-      "id": "14757488",
-      "title": "사랑의 시작 [7권 세트] (총 7권/완결)",
-      "url": "https://series.naver.com/comic/detail.series?productNo=14757488",
-      "discount": "28% 할인",
-      "discount_end": "2026-10-21까지"
+      "id": "14688638",
+      "title": "불완전 신데렐라물 [106화 세트] (총 106화/완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=14688638",
+      "discount": "25% 할인",
+      "discount_end": "2026-09-29까지"
     },
     {
-      "id": "14757487",
-      "title": "약혼자는 익애하는 척 [6권 세트] (총 6권/미완결)",
-      "url": "https://series.naver.com/comic/detail.series?productNo=14757487",
-      "discount": "30% 할인",
-      "discount_end": "2026-10-21까지"
-    },
-    {
-      "id": "14669110",
-      "title": "마법진 구루구루-디지털버전[단행본][16권 세트] (총 16권/완결)",
-      "url": "https://series.naver.com/comic/detail.series?productNo=14669110",
-      "discount": "30% 할인",
-      "discount_end": ""
-    },
-    {
-      "id": "14769680",
-      "title": "시든 꽃에 눈물을 [6권 세트] (총 6권/미완결)",
-      "url": "https://series.naver.com/comic/detail.series?productNo=14769680",
+      "id": "14688637",
+      "title": "우아한 욕망 [110화 세트] (총 110화/완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=14688637",
       "discount": "",
       "discount_end": ""
+    },
+    {
+      "id": "14688636",
+      "title": "격투병동 [64화 세트] (총 64화/완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=14688636",
+      "discount": "40% 할인",
+      "discount_end": "2026-09-29까지"
+    },
+    {
+      "id": "14647743",
+      "title": "특별한 도라에몽 [7권 세트] (총 7권/미완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=14647743",
+      "discount": "20% 할인",
+      "discount_end": "2026-10-23까지"
     }
   ]
 }

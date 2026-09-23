@@ -1,9 +1,6 @@
 name: GitHub Schedule Heartbeat
 
 on:
-  schedule:
-    # 06:05 KST = 21:05 UTC (previous calendar day in UTC)
-    - cron: "5 21 * * *"
   workflow_dispatch:
 
 jobs:

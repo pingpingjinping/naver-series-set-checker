@@ -1,5 +1,34 @@
 {
-  "date": "2026-09-27",
-  "generatedAt": "2026-09-27T06:10:17.204584+09:00",
-  "items": []
+  "date": "2026-09-28",
+  "generatedAt": "2026-09-28T06:10:32.258751+09:00",
+  "items": [
+    {
+      "id": "14781561",
+      "title": "블루 록 [36권 세트] (총 36권/미완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=14781561",
+      "discount": "30% 할인",
+      "discount_end": "2026-10-27까지"
+    },
+    {
+      "id": "14782012",
+      "title": "에어리어의 기사 [57권 세트] (총 57권/완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=14782012",
+      "discount": "28% 할인",
+      "discount_end": "2026-10-27까지"
+    },
+    {
+      "id": "14782011",
+      "title": "블루 록 -Episode 나기- [8권 세트] (총 8권/완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=14782011",
+      "discount": "28% 할인",
+      "discount_end": "2026-10-27까지"
+    },
+    {
+      "id": "14786100",
+      "title": "내 최애는 막차를 탄다 [2권 세트] (총 2권/미완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=14786100",
+      "discount": "30% 할인",
+      "discount_end": ""
+    }
+  ]
 }

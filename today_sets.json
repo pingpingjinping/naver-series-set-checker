@@ -1,34 +1,62 @@
 {
-  "date": "2026-09-28",
-  "generatedAt": "2026-09-28T06:10:32.258751+09:00",
+  "date": "2026-09-29",
+  "generatedAt": "2026-09-29T06:10:47.000299+09:00",
   "items": [
     {
-      "id": "14781561",
-      "title": "블루 록 [36권 세트] (총 36권/미완결)",
-      "url": "https://series.naver.com/comic/detail.series?productNo=14781561",
+      "id": "14787098",
+      "title": "잡용 부여술사가 자신의 강함을 눈치챌 때까지 [9권 세트] (총 9권/미완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=14787098",
+      "discount": "31% 할인",
+      "discount_end": ""
+    },
+    {
+      "id": "14783497",
+      "title": "메이드 인 허니 [6권 세트] (총 6권/완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=14783497",
       "discount": "30% 할인",
-      "discount_end": "2026-10-27까지"
+      "discount_end": "2026-10-26까지"
     },
     {
-      "id": "14782012",
-      "title": "에어리어의 기사 [57권 세트] (총 57권/완결)",
-      "url": "https://series.naver.com/comic/detail.series?productNo=14782012",
-      "discount": "28% 할인",
-      "discount_end": "2026-10-27까지"
+      "id": "14783492",
+      "title": "오래오래 잘 부탁드립니다 [14권 세트] (총 14권/미완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=14783492",
+      "discount": "30% 할인",
+      "discount_end": "2026-10-26까지"
     },
     {
-      "id": "14782011",
-      "title": "블루 록 -Episode 나기- [8권 세트] (총 8권/완결)",
-      "url": "https://series.naver.com/comic/detail.series?productNo=14782011",
-      "discount": "28% 할인",
-      "discount_end": "2026-10-27까지"
+      "id": "14782038",
+      "title": "후지야마는 사춘기 [8권 세트] (총 8권/완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=14782038",
+      "discount": "31% 할인",
+      "discount_end": ""
     },
     {
-      "id": "14786100",
-      "title": "내 최애는 막차를 탄다 [2권 세트] (총 2권/미완결)",
-      "url": "https://series.naver.com/comic/detail.series?productNo=14786100",
+      "id": "14782035",
+      "title": "짓궂은 안죠 양 [15권 세트] (총 15권/미완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=14782035",
       "discount": "30% 할인",
       "discount_end": ""
+    },
+    {
+      "id": "14733320",
+      "title": "스튜디오 카바나 [7권 세트] (총 7권/미완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=14733320",
+      "discount": "20% 할인",
+      "discount_end": "2026-10-21까지"
+    },
+    {
+      "id": "14783495",
+      "title": "아사히 선배의 취향 [7권 세트] (총 7권/완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=14783495",
+      "discount": "30% 할인",
+      "discount_end": "2026-10-26까지"
+    },
+    {
+      "id": "14783494",
+      "title": "N과 S [8권 세트] (총 8권/완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=14783494",
+      "discount": "28% 할인",
+      "discount_end": "2026-10-26까지"
     }
   ]
 }

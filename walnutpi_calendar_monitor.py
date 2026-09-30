@@ -13,6 +13,8 @@ import requests
 from bs4 import BeautifulSoup
 from zoneinfo import ZoneInfo
 
+from monthly_release_report import jina_text
+
 KST = ZoneInfo("Asia/Seoul")
 
 RIDI_URL = "https://ridibooks.com/event/11339"
@@ -80,29 +82,19 @@ def target_month(now: datetime):
 
 
 def fetch_ridi() -> dict:
-    r = requests.get(RIDI_URL, headers=HEADERS, timeout=30)
-    r.raise_for_status()
-    soup = BeautifulSoup(r.text, "html.parser")
-
-    candidates = []
-    og = soup.find("meta", attrs={"property": "og:title"})
-    if og and og.get("content"):
-        candidates.append(og["content"])
-    if soup.title:
-        candidates.append(soup.title.get_text(" ", strip=True))
-    candidates.append(soup.get_text(" ", strip=True))
-
-    for text in candidates:
-        m = RIDI_RE.search(text or "")
-        if m:
-            year = int(m.group(1))
-            month = int(m.group(2))
-            return {
-                "year": year,
-                "month": month,
-                "title": f"{year}년 {month}월 만화 캘린더",
-                "url": RIDI_URL,
-            }
+    # 리디는 Cloudflare managed challenge로 일반 requests/curl을 차단할 수 있다.
+    # 상세 출시 일정 파서와 동일하게 Jina Reader를 경유해 공개 페이지 텍스트를 읽는다.
+    text = jina_text(RIDI_URL)
+    m = RIDI_RE.search(text or "")
+    if m:
+        year = int(m.group(1))
+        month = int(m.group(2))
+        return {
+            "year": year,
+            "month": month,
+            "title": f"{year}년 {month}월 만화 캘린더",
+            "url": RIDI_URL,
+        }
 
     raise ValueError("리디 페이지에서 'YYYY년 M월 만화 캘린더'를 찾지 못했습니다.")
 

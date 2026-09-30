@@ -72,7 +72,7 @@ def month_key(year: int, month: int) -> str:
 
 
 def target_month(now: datetime):
-    if now.day >= 27:
+    if now.day >= 28:
         if now.month == 12:
             return now.year + 1, 1
         return now.year, now.month + 1
@@ -361,7 +361,7 @@ def main() -> int:
     target = target_month(now)
 
     if target is None:
-        print(f"{now:%Y-%m-%d} KST: 27일~6일 감시 기간이 아니므로 종료")
+        print(f"{now:%Y-%m-%d} KST: 28일~6일 감시 기간이 아니므로 종료")
         return 0
 
     target_year, target_mon = target

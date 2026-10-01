@@ -1,274 +1,349 @@
 {
   "items": {
+    "14813538": {
+      "id": "14813538",
+      "title": "그랑블루 [26권 세트] (총 26권/미완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=14813538",
+      "date": "",
+      "meta": "",
+      "discount": "30% 할인",
+      "discount_end": "2026-11-02까지"
+    },
+    "14813537": {
+      "id": "14813537",
+      "title": "요괴 아파트의 우아한 일상 [33권 세트] (총 33권/미완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=14813537",
+      "date": "",
+      "meta": "",
+      "discount": "28% 할인",
+      "discount_end": "2026-11-02까지"
+    },
+    "14813536": {
+      "id": "14813536",
+      "title": "파티피플 공명 [23권 세트] (총 23권/미완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=14813536",
+      "date": "",
+      "meta": "",
+      "discount": "28% 할인",
+      "discount_end": "2026-11-02까지"
+    },
+    "14812556": {
+      "id": "14812556",
+      "title": "성녀, 용사 파티에서 해고 당해 길드를 만들었더니 내 집 같은 최강의 길드로 성장했습니다 [4권 세트] (총 4권/미완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=14812556",
+      "date": "",
+      "meta": "",
+      "discount": "30% 할인",
+      "discount_end": ""
+    },
+    "14812555": {
+      "id": "14812555",
+      "title": "점술가에게는 꽃기사의 연심이 보이고 있습니다 [5권 세트] (총 5권/미완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=14812555",
+      "date": "",
+      "meta": "",
+      "discount": "30% 할인",
+      "discount_end": ""
+    },
+    "14812554": {
+      "id": "14812554",
+      "title": "양가장기담 [3권 세트] (총 3권/완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=14812554",
+      "date": "",
+      "meta": "",
+      "discount": "30% 할인",
+      "discount_end": ""
+    },
+    "14812553": {
+      "id": "14812553",
+      "title": "몰락 영애, 빈곤 기사의 메이드가 됐습니다 [5권 세트] (총 5권/미완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=14812553",
+      "date": "",
+      "meta": "",
+      "discount": "30% 할인",
+      "discount_end": ""
+    },
+    "14783600": {
+      "id": "14783600",
+      "title": "추방당한 치트 부여 마술사는 자유로운 세컨드 라이프를 구가한다. [10권 세트] (총 10권/미완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=14783600",
+      "date": "",
+      "meta": "",
+      "discount": "28% 할인",
+      "discount_end": "2026-10-31까지"
+    },
+    "14813541": {
+      "id": "14813541",
+      "title": "호오즈키의 냉철 [31권 세트] (총 31권/완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=14813541",
+      "date": "",
+      "meta": "",
+      "discount": "28% 할인",
+      "discount_end": "2026-11-02까지"
+    },
+    "14813540": {
+      "id": "14813540",
+      "title": "담배 고양이 [5권 세트] (총 5권/미완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=14813540",
+      "date": "",
+      "meta": "",
+      "discount": "28% 할인",
+      "discount_end": "2026-11-02까지"
+    },
+    "14813539": {
+      "id": "14813539",
+      "title": "템플 [15권 세트] (총 15권/미완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=14813539",
+      "date": "",
+      "meta": "",
+      "discount": "28% 할인",
+      "discount_end": "2026-11-02까지"
+    },
+    "14783601": {
+      "id": "14783601",
+      "title": "29세 독신 중견 모험가의 일상 [20권 세트] (총 20권/미완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=14783601",
+      "date": "",
+      "meta": "",
+      "discount": "28% 할인",
+      "discount_end": "2026-10-31까지"
+    },
+    "14783599": {
+      "id": "14783599",
+      "title": "도쿄 리벤저스 ~바지 케이스케로부터의 편지~ [6권 세트] (총 6권/완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=14783599",
+      "date": "",
+      "meta": "",
+      "discount": "28% 할인",
+      "discount_end": "2026-11-12까지"
+    },
+    "14783598": {
+      "id": "14783598",
+      "title": "도쿄대 리벤저스 [6권 세트] (총 6권/완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=14783598",
+      "date": "",
+      "meta": "",
+      "discount": "28% 할인",
+      "discount_end": "2026-11-12까지"
+    },
+    "14783597": {
+      "id": "14783597",
+      "title": "도쿄 리벤저스 [31권 세트] (총 31권/완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=14783597",
+      "date": "",
+      "meta": "",
+      "discount": "28% 할인",
+      "discount_end": "2026-11-12까지"
+    },
     "14803981": {
       "id": "14803981",
       "title": "악마에 입문했습니다! 이루마 군 [48권 세트] (총 48권/미완결)",
       "url": "https://series.naver.com/comic/detail.series?productNo=14803981",
       "date": "",
-      "meta": "",
-      "discount": "30% 할인",
-      "discount_end": ""
+      "meta": ""
     },
     "14779314": {
       "id": "14779314",
       "title": "건강하고 문화적인 최저한도의 생활 [11권 세트] (총 11권/미완결)",
       "url": "https://series.naver.com/comic/detail.series?productNo=14779314",
       "date": "",
-      "meta": "",
-      "discount": "20% 할인",
-      "discount_end": "2026-10-31까지"
+      "meta": ""
     },
     "14804232": {
       "id": "14804232",
       "title": "바람의 저편 [14권 세트] (총 14권/완결)",
       "url": "https://series.naver.com/comic/detail.series?productNo=14804232",
       "date": "",
-      "meta": "",
-      "discount": "28% 할인",
-      "discount_end": ""
+      "meta": ""
     },
     "14803996": {
       "id": "14803996",
       "title": "바람의 저편 애장판 [7권 세트] (총 7권/완결)",
       "url": "https://series.naver.com/comic/detail.series?productNo=14803996",
       "date": "",
-      "meta": "",
-      "discount": "29% 할인",
-      "discount_end": ""
+      "meta": ""
     },
     "14803995": {
       "id": "14803995",
       "title": "개구리 하사 케로로 [30권 세트] (총 30권/미완결)",
       "url": "https://series.naver.com/comic/detail.series?productNo=14803995",
       "date": "",
-      "meta": "",
-      "discount": "28% 할인",
-      "discount_end": ""
+      "meta": ""
     },
     "14799043": {
       "id": "14799043",
       "title": "토쿠가와 군이 자꾸 곤란하게 해! [5권 세트] (총 5권/미완결)",
       "url": "https://series.naver.com/comic/detail.series?productNo=14799043",
       "date": "",
-      "meta": "",
-      "discount": "27% 할인",
-      "discount_end": "2026-10-28까지"
+      "meta": ""
     },
     "14799040": {
       "id": "14799040",
       "title": "숨막힐 정도의 사랑을 줄게 [7권 세트] (총 7권/미완결)",
       "url": "https://series.naver.com/comic/detail.series?productNo=14799040",
       "date": "",
-      "meta": "",
-      "discount": "30% 할인",
-      "discount_end": "2026-10-28까지"
+      "meta": ""
     },
     "14779297": {
       "id": "14779297",
       "title": "아케비의 세일러복 [15권 세트] (총 15권/미완결)",
       "url": "https://series.naver.com/comic/detail.series?productNo=14779297",
       "date": "",
-      "meta": "",
-      "discount": "20% 할인",
-      "discount_end": "2026-10-31까지"
+      "meta": ""
     },
     "14779281": {
       "id": "14779281",
       "title": "전주교실 [9권 세트] (총 9권/미완결)",
       "url": "https://series.naver.com/comic/detail.series?productNo=14779281",
       "date": "",
-      "meta": "",
-      "discount": "20% 할인",
-      "discount_end": "2026-10-31까지"
+      "meta": ""
     },
     "14799047": {
       "id": "14799047",
       "title": "뒤늦게 청춘 [5권 세트] (총 5권/완결)",
       "url": "https://series.naver.com/comic/detail.series?productNo=14799047",
       "date": "",
-      "meta": "",
-      "discount": "30% 할인",
-      "discount_end": "2026-10-28까지"
+      "meta": ""
     },
     "14799045": {
       "id": "14799045",
       "title": "아저씨는 귀여운 것을 좋아해 [10권 세트] (총 10권/미완결)",
       "url": "https://series.naver.com/comic/detail.series?productNo=14799045",
       "date": "",
-      "meta": "",
-      "discount": "28% 할인",
-      "discount_end": "2026-10-28까지"
+      "meta": ""
     },
     "14783596": {
       "id": "14783596",
       "title": "코바토. [6권 세트] (총 6권/완결)",
       "url": "https://series.naver.com/comic/detail.series?productNo=14783596",
       "date": "",
-      "meta": "",
-      "discount": "28% 할인",
-      "discount_end": "2026-10-30까지"
+      "meta": ""
     },
     "14783595": {
       "id": "14783595",
       "title": "도쿄 BABYLON (도쿄 바빌론) [3권 세트] (총 3권/완결)",
       "url": "https://series.naver.com/comic/detail.series?productNo=14783595",
       "date": "",
-      "meta": "",
-      "discount": "29% 할인",
-      "discount_end": "2026-10-30까지"
+      "meta": ""
     },
     "14783594": {
       "id": "14783594",
       "title": "성전 -RG VEDA- [5권 세트] (총 5권/완결)",
       "url": "https://series.naver.com/comic/detail.series?productNo=14783594",
       "date": "",
-      "meta": "",
-      "discount": "29% 할인",
-      "discount_end": "2026-10-30까지"
+      "meta": ""
     },
     "14783593": {
       "id": "14783593",
       "title": "클로버(CLOVER) [2권 세트] (총 2권/완결)",
       "url": "https://series.naver.com/comic/detail.series?productNo=14783593",
       "date": "",
-      "meta": "",
-      "discount": "30% 할인",
-      "discount_end": "2026-10-30까지"
+      "meta": ""
     },
     "14783592": {
       "id": "14783592",
       "title": "쵸비츠(애장판) [4권 세트] (총 4권/완결)",
       "url": "https://series.naver.com/comic/detail.series?productNo=14783592",
       "date": "",
-      "meta": "",
-      "discount": "29% 할인",
-      "discount_end": "2026-10-30까지"
+      "meta": ""
     },
     "14783591": {
       "id": "14783591",
       "title": "츠바사 니라이카나이 편 [3권 세트] (총 3권/완결)",
       "url": "https://series.naver.com/comic/detail.series?productNo=14783591",
       "date": "",
-      "meta": "",
-      "discount": "29% 할인",
-      "discount_end": "2026-10-30까지"
+      "meta": ""
     },
     "14783590": {
       "id": "14783590",
       "title": "츠바사 [28권 세트] (총 28권/완결)",
       "url": "https://series.naver.com/comic/detail.series?productNo=14783590",
       "date": "",
-      "meta": "",
-      "discount": "28% 할인",
-      "discount_end": "2026-10-30까지"
+      "meta": ""
     },
     "14783589": {
       "id": "14783589",
       "title": "카드캡터 사쿠라 클리어 카드 편 [16권 세트] (총 16권/완결)",
       "url": "https://series.naver.com/comic/detail.series?productNo=14783589",
       "date": "",
-      "meta": "",
-      "discount": "28% 할인",
-      "discount_end": "2026-10-30까지"
+      "meta": ""
     },
     "14783236": {
       "id": "14783236",
       "title": "카드캡터 사쿠라 애장판 [6권 세트] (총 6권/완결)",
       "url": "https://series.naver.com/comic/detail.series?productNo=14783236",
       "date": "",
-      "meta": "",
-      "discount": "30% 할인",
-      "discount_end": "2026-10-30까지"
+      "meta": ""
     },
     "14783235": {
       "id": "14783235",
       "title": "마법기사 레이어스 [6권 세트] (총 6권/완결)",
       "url": "https://series.naver.com/comic/detail.series?productNo=14783235",
       "date": "",
-      "meta": "",
-      "discount": "30% 할인",
-      "discount_end": "2026-10-30까지"
+      "meta": ""
     },
     "14779279": {
       "id": "14779279",
       "title": "아오아시 [15권 세트] (총 15권/미완결)",
       "url": "https://series.naver.com/comic/detail.series?productNo=14779279",
       "date": "",
-      "meta": "",
-      "discount": "20% 할인",
-      "discount_end": "2026-10-31까지"
+      "meta": ""
     },
     "14779271": {
       "id": "14779271",
       "title": "얼음 성벽 [14권 세트] (총 14권/완결)",
       "url": "https://series.naver.com/comic/detail.series?productNo=14779271",
       "date": "",
-      "meta": "",
-      "discount": "30% 할인",
-      "discount_end": "2026-10-31까지"
+      "meta": ""
     },
     "14779260": {
       "id": "14779260",
       "title": "마로니에 왕국의 7인의 기사 [5권 세트] (총 5권/미완결)",
       "url": "https://series.naver.com/comic/detail.series?productNo=14779260",
       "date": "",
-      "meta": "",
-      "discount": "20% 할인",
-      "discount_end": "2026-10-31까지"
+      "meta": ""
     },
     "14779258": {
       "id": "14779258",
       "title": "사이렌 [16권 세트] (총 16권/완결)",
       "url": "https://series.naver.com/comic/detail.series?productNo=14779258",
       "date": "",
-      "meta": "",
-      "discount": "28% 할인",
-      "discount_end": "2026-10-31까지"
+      "meta": ""
     },
     "14779255": {
       "id": "14779255",
       "title": "약사의 혼잣말(마오마오의 후궁 수수께끼 풀이수첩) [20권 세트] (총 20권/미완결)",
       "url": "https://series.naver.com/comic/detail.series?productNo=14779255",
       "date": "",
-      "meta": "",
-      "discount": "20% 할인",
-      "discount_end": "2026-10-31까지"
+      "meta": ""
     },
     "14779250": {
       "id": "14779250",
       "title": "신 테니스의 왕자 [43권 세트] (총 43권/미완결)",
       "url": "https://series.naver.com/comic/detail.series?productNo=14779250",
       "date": "",
-      "meta": "",
-      "discount": "20% 할인",
-      "discount_end": "2026-10-31까지"
+      "meta": ""
     },
     "14779249": {
       "id": "14779249",
       "title": "블랙 클로버 [36권 세트] (총 36권/미완결)",
       "url": "https://series.naver.com/comic/detail.series?productNo=14779249",
       "date": "",
-      "meta": "",
-      "discount": "20% 할인",
-      "discount_end": "2026-10-31까지"
+      "meta": ""
     },
     "14779234": {
       "id": "14779234",
       "title": "푸른 상자 [23권 세트] (총 23권/미완결)",
       "url": "https://series.naver.com/comic/detail.series?productNo=14779234",
       "date": "",
-      "meta": "",
-      "discount": "18% 할인",
-      "discount_end": "2026-10-31까지"
+      "meta": ""
     },
     "14779229": {
       "id": "14779229",
       "title": "반딧불이의 혼례 [10권 세트] (총 10권/미완결)",
       "url": "https://series.naver.com/comic/detail.series?productNo=14779229",
       "date": "",
-      "meta": "",
-      "discount": "20% 할인",
-      "discount_end": "2026-10-31까지"
+      "meta": ""
     },
     "14693853": {
       "id": "14693853",
@@ -417,13 +492,6 @@
       "date": "",
       "meta": ""
     },
-    "14771053": {
-      "id": "14771053",
-      "title": "고교정벌 : 일진과의 전쟁 [45화 세트] (총 45화/미완결)",
-      "url": "https://series.naver.com/comic/detail.series?productNo=14771053",
-      "date": "",
-      "meta": ""
-    },
     "14757688": {
       "id": "14757688",
       "title": "사실 나는 [22권 세트] (총 22권/완결)",
@@ -435,13 +503,6 @@
       "id": "14757687",
       "title": "벨제붑 아가씨의 뜻대로. [12권 세트] (총 12권/완결)",
       "url": "https://series.naver.com/comic/detail.series?productNo=14757687",
-      "date": "",
-      "meta": ""
-    },
-    "14688646": {
-      "id": "14688646",
-      "title": "일진과의 전쟁 [49화 세트] (총 49화/완결)",
-      "url": "https://series.naver.com/comic/detail.series?productNo=14688646",
       "date": "",
       "meta": ""
     },
@@ -491,97 +552,6 @@
       "id": "14786104",
       "title": "티아라 [35권 세트] (총 35권/완결)",
       "url": "https://series.naver.com/comic/detail.series?productNo=14786104",
-      "date": "",
-      "meta": ""
-    },
-    "14786101": {
-      "id": "14786101",
-      "title": "더 콩쿠르 [13권 세트] (총 13권/완결)",
-      "url": "https://series.naver.com/comic/detail.series?productNo=14786101",
-      "date": "",
-      "meta": ""
-    },
-    "14786079": {
-      "id": "14786079",
-      "title": "금혼령-조선혼인금지령 [8권 세트] (총 8권/완결)",
-      "url": "https://series.naver.com/comic/detail.series?productNo=14786079",
-      "date": "",
-      "meta": ""
-    },
-    "14786068": {
-      "id": "14786068",
-      "title": "마침내 사랑이에요 마왕님! [2권 세트] (총 2권/완결)",
-      "url": "https://series.naver.com/comic/detail.series?productNo=14786068",
-      "date": "",
-      "meta": ""
-    },
-    "14786052": {
-      "id": "14786052",
-      "title": "빅 애플(Big Apple) [6권 세트] (총 6권/완결)",
-      "url": "https://series.naver.com/comic/detail.series?productNo=14786052",
-      "date": "",
-      "meta": ""
-    },
-    "14786045": {
-      "id": "14786045",
-      "title": "퍼펙트 버디 FUCK-PECT BUDDY [7권 세트] (총 7권/완결)",
-      "url": "https://series.naver.com/comic/detail.series?productNo=14786045",
-      "date": "",
-      "meta": ""
-    },
-    "14786043": {
-      "id": "14786043",
-      "title": "엔네아드(ENNEAD) [완전판][6권 세트] (총 6권/미완결)",
-      "url": "https://series.naver.com/comic/detail.series?productNo=14786043",
-      "date": "",
-      "meta": ""
-    },
-    "14786042": {
-      "id": "14786042",
-      "title": "엔네아드(ENNEAD) [6권 세트] (총 6권/미완결)",
-      "url": "https://series.naver.com/comic/detail.series?productNo=14786042",
-      "date": "",
-      "meta": ""
-    },
-    "14786030": {
-      "id": "14786030",
-      "title": "애장판 후르츠바스켓 [12권 세트] (총 12권/완결)",
-      "url": "https://series.naver.com/comic/detail.series?productNo=14786030",
-      "date": "",
-      "meta": ""
-    },
-    "14786014": {
-      "id": "14786014",
-      "title": "산왕의 궁전에서 [BL][2권 세트] (총 2권/완결)",
-      "url": "https://series.naver.com/comic/detail.series?productNo=14786014",
-      "date": "",
-      "meta": ""
-    },
-    "14785985": {
-      "id": "14785985",
-      "title": "얼음요괴 이야기[25권 세트] (총 26권/완결)",
-      "url": "https://series.naver.com/comic/detail.series?productNo=14785985",
-      "date": "",
-      "meta": ""
-    },
-    "14785980": {
-      "id": "14785980",
-      "title": "실버 다이아몬드[28권 세트] (총 29권/완결)",
-      "url": "https://series.naver.com/comic/detail.series?productNo=14785980",
-      "date": "",
-      "meta": ""
-    },
-    "14785962": {
-      "id": "14785962",
-      "title": "천일야화[11권 세트] (총 11권/완결)",
-      "url": "https://series.naver.com/comic/detail.series?productNo=14785962",
-      "date": "",
-      "meta": ""
-    },
-    "14785959": {
-      "id": "14785959",
-      "title": "밤을 걷는 선비 [20권 세트] (총 20권/완결)",
-      "url": "https://series.naver.com/comic/detail.series?productNo=14785959",
       "date": "",
       "meta": ""
     }

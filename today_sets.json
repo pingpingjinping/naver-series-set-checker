@@ -1,20 +1,69 @@
 {
-  "date": "2026-10-06",
-  "generatedAt": "2026-10-06T06:15:37.319131+09:00",
+  "date": "2026-10-07",
+  "generatedAt": "2026-10-07T06:10:47.835488+09:00",
   "items": [
     {
-      "id": "14824619",
-      "title": "아베가 저를 노리고 있습니다 [11권 세트] (총 11권/미완결)",
-      "url": "https://series.naver.com/comic/detail.series?productNo=14824619",
-      "discount": "30% 할인",
-      "discount_end": ""
+      "id": "14832290",
+      "title": "너의 마법이 닿으면 [8권 세트] (총 8권/완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=14832290",
+      "discount": "29% 할인",
+      "discount_end": "2026-10-20까지"
     },
     {
-      "id": "14824613",
-      "title": "야마다의 학급일지 [4권 세트] (총 4권/완결)",
-      "url": "https://series.naver.com/comic/detail.series?productNo=14824613",
-      "discount": "27% 할인",
-      "discount_end": ""
+      "id": "14832230",
+      "title": "펠루아 이야기 [20권 세트] (총 20권/완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=14832230",
+      "discount": "28% 할인",
+      "discount_end": "2026-10-20까지"
+    },
+    {
+      "id": "14831460",
+      "title": "로스트 프린세스 [9권 세트] (총 9권/완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=14831460",
+      "discount": "28% 할인",
+      "discount_end": "2026-10-20까지"
+    },
+    {
+      "id": "14831344",
+      "title": "매의 검 [10권 세트] (총 10권/완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=14831344",
+      "discount": "29% 할인",
+      "discount_end": "2026-10-20까지"
+    },
+    {
+      "id": "14831218",
+      "title": "다정다감 [18권 세트] (총 18권/완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=14831218",
+      "discount": "28% 할인",
+      "discount_end": "2026-10-20까지"
+    },
+    {
+      "id": "14807852",
+      "title": "그라제니 [17권 세트] (총 17권/완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=14807852",
+      "discount": "28% 할인",
+      "discount_end": "2026-11-05까지"
+    },
+    {
+      "id": "14807856",
+      "title": "크게 휘두르며 [38권 세트] (총 38권/미완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=14807856",
+      "discount": "28% 할인",
+      "discount_end": "2026-11-05까지"
+    },
+    {
+      "id": "14807855",
+      "title": "다이아몬드 에이스 [47권 세트] (총 47권/완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=14807855",
+      "discount": "28% 할인",
+      "discount_end": "2026-11-05까지"
+    },
+    {
+      "id": "14807854",
+      "title": "다이아몬드 에이스 actⅡ [34권 세트] (총 34권/완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=14807854",
+      "discount": "28% 할인",
+      "discount_end": "2026-11-05까지"
     }
   ]
 }

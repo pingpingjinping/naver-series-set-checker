@@ -1,69 +1,181 @@
 {
-  "date": "2026-10-07",
-  "generatedAt": "2026-10-07T06:10:47.835488+09:00",
+  "date": "2026-10-08",
+  "generatedAt": "2026-10-08T06:11:31.694145+09:00",
   "items": [
     {
-      "id": "14832290",
-      "title": "너의 마법이 닿으면 [8권 세트] (총 8권/완결)",
-      "url": "https://series.naver.com/comic/detail.series?productNo=14832290",
-      "discount": "29% 할인",
+      "id": "14838140",
+      "title": "쿄가네 가문의 신부 [5권 세트] (총 5권/미완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=14838140",
+      "discount": "28% 할인",
+      "discount_end": ""
+    },
+    {
+      "id": "14838229",
+      "title": "SANDA(산다) [16권 세트] (총 16권/완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=14838229",
+      "discount": "27% 할인",
+      "discount_end": ""
+    },
+    {
+      "id": "14838208",
+      "title": "알칼로이드 신부 [5권 세트] (총 5권/완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=14838208",
+      "discount": "28% 할인",
+      "discount_end": ""
+    },
+    {
+      "id": "14838124",
+      "title": "허구추리 [25권 세트] (총 25권/미완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=14838124",
+      "discount": "28% 할인",
+      "discount_end": ""
+    },
+    {
+      "id": "14836502",
+      "title": "빌려준 마력은 [리볼빙]으로 강제 징수 [5권 세트] (총 5권/미완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=14836502",
+      "discount": "28% 할인",
+      "discount_end": "2026-11-09까지"
+    },
+    {
+      "id": "14836500",
+      "title": "TANK CHAIR -탱크체어- [5권 세트] (총 5권/미완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=14836500",
+      "discount": "28% 할인",
+      "discount_end": "2026-11-09까지"
+    },
+    {
+      "id": "14834434",
+      "title": "푹신푹신한 농가의 문자 변종 스킬 ~이세계에서 카탈로그 통판하고 있습니다~ [6권 세트] (총 6권/미완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=14834434",
+      "discount": "",
+      "discount_end": ""
+    },
+    {
+      "id": "14834432",
+      "title": "던전 섬에서 여관을 하자! 창조 마법을 받은 나의 가냘픈 번성기 [8권 세트] (총 8권/미완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=14834432",
+      "discount": "",
+      "discount_end": ""
+    },
+    {
+      "id": "14834431",
+      "title": "마검사의 마검에 의한 마검을 위한 하렘 라이프 [8권 세트] (총 8권/미완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=14834431",
+      "discount": "",
+      "discount_end": ""
+    },
+    {
+      "id": "14834429",
+      "title": "용사가 되지 못한 바보 트리오는 오늘도 남자의 밥을 만든다 [2권 세트] (총 2권/완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=14834429",
+      "discount": "30% 할인",
+      "discount_end": ""
+    },
+    {
+      "id": "14834426",
+      "title": "누더기 영애는 언니의 전 약혼자에게 익애받는다 [10권 세트] (총 10권/미완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=14834426",
+      "discount": "30% 할인",
+      "discount_end": ""
+    },
+    {
+      "id": "14834417",
+      "title": "메시누마 [15권 세트] (총 15권/미완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=14834417",
+      "discount": "30% 할인",
+      "discount_end": ""
+    },
+    {
+      "id": "14828314",
+      "title": "녹풍당의 사계절 [21권 세트] (총 21권/미완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=14828314",
+      "discount": "30% 할인",
+      "discount_end": "2026-11-04까지"
+    },
+    {
+      "id": "14802916",
+      "title": "베르벨룸 : 말의 전쟁 [8권 세트] (총 8권/완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=14802916",
+      "discount": "30% 할인",
+      "discount_end": "2026-11-07까지"
+    },
+    {
+      "id": "14836509",
+      "title": "이누야시키 [10권 세트] (총 10권/완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=14836509",
+      "discount": "30% 할인",
+      "discount_end": "2026-11-09까지"
+    },
+    {
+      "id": "14836508",
+      "title": "오리엔트 [22권 세트] (총 22권/완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=14836508",
+      "discount": "28% 할인",
+      "discount_end": "2026-11-09까지"
+    },
+    {
+      "id": "14836506",
+      "title": "노부나가를 죽인 남자 ~혼노지의 변 431년째의 진실~ [9권 세트] (총 9권/완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=14836506",
+      "discount": "30% 할인",
+      "discount_end": "2026-11-09까지"
+    },
+    {
+      "id": "14836505",
+      "title": "노부나가를 죽인 남자 ~일륜의 데마르카시온~ [9권 세트] (총 9권/미완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=14836505",
+      "discount": "30% 할인",
+      "discount_end": "2026-11-09까지"
+    },
+    {
+      "id": "14836504",
+      "title": "로멜리아 전기 [5권 세트] (총 5권/미완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=14836504",
+      "discount": "28% 할인",
+      "discount_end": "2026-11-09까지"
+    },
+    {
+      "id": "14828323",
+      "title": "아기 여우, 와글와글 여우신의 시중밥 잘 먹겠습니다! [6권 세트] (총 6권/완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=14828323",
+      "discount": "30% 할인",
+      "discount_end": "2026-11-04까지"
+    },
+    {
+      "id": "14828322",
+      "title": "다녀왔어 노래 [7권 세트] (총 7권/완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=14828322",
+      "discount": "28% 할인",
+      "discount_end": "2026-11-04까지"
+    },
+    {
+      "id": "14828315",
+      "title": "토끼는 정의 [9권 세트] (총 9권/미완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=14828315",
+      "discount": "30% 할인",
+      "discount_end": "2026-11-04까지"
+    },
+    {
+      "id": "14802937",
+      "title": "세월이 흘러 다리로 간다 [8권 세트] (총 11권/미완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=14802937",
+      "discount": "20% 할인",
+      "discount_end": "2026-11-07까지"
+    },
+    {
+      "id": "14802930",
+      "title": "어차피 울 거라면 사랑이 좋아 [8권 세트] (총 8권/미완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=14802930",
+      "discount": "20% 할인",
+      "discount_end": "2026-11-07까지"
+    },
+    {
+      "id": "14818031",
+      "title": "사망 유희로 밥을 먹는다. [코믹스] [5권 세트] (총 5권/미완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=14818031",
+      "discount": "30% 할인",
       "discount_end": "2026-10-20까지"
-    },
-    {
-      "id": "14832230",
-      "title": "펠루아 이야기 [20권 세트] (총 20권/완결)",
-      "url": "https://series.naver.com/comic/detail.series?productNo=14832230",
-      "discount": "28% 할인",
-      "discount_end": "2026-10-20까지"
-    },
-    {
-      "id": "14831460",
-      "title": "로스트 프린세스 [9권 세트] (총 9권/완결)",
-      "url": "https://series.naver.com/comic/detail.series?productNo=14831460",
-      "discount": "28% 할인",
-      "discount_end": "2026-10-20까지"
-    },
-    {
-      "id": "14831344",
-      "title": "매의 검 [10권 세트] (총 10권/완결)",
-      "url": "https://series.naver.com/comic/detail.series?productNo=14831344",
-      "discount": "29% 할인",
-      "discount_end": "2026-10-20까지"
-    },
-    {
-      "id": "14831218",
-      "title": "다정다감 [18권 세트] (총 18권/완결)",
-      "url": "https://series.naver.com/comic/detail.series?productNo=14831218",
-      "discount": "28% 할인",
-      "discount_end": "2026-10-20까지"
-    },
-    {
-      "id": "14807852",
-      "title": "그라제니 [17권 세트] (총 17권/완결)",
-      "url": "https://series.naver.com/comic/detail.series?productNo=14807852",
-      "discount": "28% 할인",
-      "discount_end": "2026-11-05까지"
-    },
-    {
-      "id": "14807856",
-      "title": "크게 휘두르며 [38권 세트] (총 38권/미완결)",
-      "url": "https://series.naver.com/comic/detail.series?productNo=14807856",
-      "discount": "28% 할인",
-      "discount_end": "2026-11-05까지"
-    },
-    {
-      "id": "14807855",
-      "title": "다이아몬드 에이스 [47권 세트] (총 47권/완결)",
-      "url": "https://series.naver.com/comic/detail.series?productNo=14807855",
-      "discount": "28% 할인",
-      "discount_end": "2026-11-05까지"
-    },
-    {
-      "id": "14807854",
-      "title": "다이아몬드 에이스 actⅡ [34권 세트] (총 34권/완결)",
-      "url": "https://series.naver.com/comic/detail.series?productNo=14807854",
-      "discount": "28% 할인",
-      "discount_end": "2026-11-05까지"
     }
   ]
 }

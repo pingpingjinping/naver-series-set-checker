@@ -1,13 +1,20 @@
 {
   "items": {
+    "14844074": {
+      "id": "14844074",
+      "title": "도나츠와 서커스 [2권 세트] (총 2권/미완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=14844074",
+      "date": "",
+      "meta": "",
+      "discount": "30% 할인",
+      "discount_end": ""
+    },
     "14789483": {
       "id": "14789483",
       "title": "공주님 \"고문\"의 시간입니다 [19권 세트] (총 19권/완결)",
       "url": "https://series.naver.com/comic/detail.series?productNo=14789483",
       "date": "",
-      "meta": "",
-      "discount": "28% 할인",
-      "discount_end": "2026-11-07까지"
+      "meta": ""
     },
     "14838140": {
       "id": "14838140",
@@ -517,13 +524,6 @@
       "id": "14783236",
       "title": "카드캡터 사쿠라 애장판 [6권 세트] (총 6권/완결)",
       "url": "https://series.naver.com/comic/detail.series?productNo=14783236",
-      "date": "",
-      "meta": ""
-    },
-    "14783235": {
-      "id": "14783235",
-      "title": "마법기사 레이어스 [6권 세트] (총 6권/완결)",
-      "url": "https://series.naver.com/comic/detail.series?productNo=14783235",
       "date": "",
       "meta": ""
     }

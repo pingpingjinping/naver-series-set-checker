@@ -1,13 +1,29 @@
 {
   "items": {
+    "14688648": {
+      "id": "14688648",
+      "title": "어디까지 괜찮아 [98화 세트] (총 98화/미완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=14688648",
+      "date": "",
+      "meta": "",
+      "discount": "",
+      "discount_end": ""
+    },
+    "14688640": {
+      "id": "14688640",
+      "title": "햄버거가 제일 좋아 [50화 세트] (총 50화/완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=14688640",
+      "date": "",
+      "meta": "",
+      "discount": "25% 할인",
+      "discount_end": "2026-10-17까지"
+    },
     "14844074": {
       "id": "14844074",
       "title": "도나츠와 서커스 [2권 세트] (총 2권/미완결)",
       "url": "https://series.naver.com/comic/detail.series?productNo=14844074",
       "date": "",
-      "meta": "",
-      "discount": "30% 할인",
-      "discount_end": ""
+      "meta": ""
     },
     "14789483": {
       "id": "14789483",
@@ -510,20 +526,6 @@
       "id": "14783590",
       "title": "츠바사 [28권 세트] (총 28권/완결)",
       "url": "https://series.naver.com/comic/detail.series?productNo=14783590",
-      "date": "",
-      "meta": ""
-    },
-    "14783589": {
-      "id": "14783589",
-      "title": "카드캡터 사쿠라 클리어 카드 편 [16권 세트] (총 16권/완결)",
-      "url": "https://series.naver.com/comic/detail.series?productNo=14783589",
-      "date": "",
-      "meta": ""
-    },
-    "14783236": {
-      "id": "14783236",
-      "title": "카드캡터 사쿠라 애장판 [6권 세트] (총 6권/완결)",
-      "url": "https://series.naver.com/comic/detail.series?productNo=14783236",
       "date": "",
       "meta": ""
     }

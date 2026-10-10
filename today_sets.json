@@ -1,13 +1,20 @@
 {
-  "date": "2026-10-10",
-  "generatedAt": "2026-10-10T06:10:22.352488+09:00",
+  "date": "2026-10-11",
+  "generatedAt": "2026-10-11T06:10:27.993883+09:00",
   "items": [
     {
-      "id": "14844074",
-      "title": "도나츠와 서커스 [2권 세트] (총 2권/미완결)",
-      "url": "https://series.naver.com/comic/detail.series?productNo=14844074",
-      "discount": "30% 할인",
+      "id": "14688648",
+      "title": "어디까지 괜찮아 [98화 세트] (총 98화/미완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=14688648",
+      "discount": "",
       "discount_end": ""
+    },
+    {
+      "id": "14688640",
+      "title": "햄버거가 제일 좋아 [50화 세트] (총 50화/완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=14688640",
+      "discount": "25% 할인",
+      "discount_end": "2026-10-17까지"
     }
   ]
 }

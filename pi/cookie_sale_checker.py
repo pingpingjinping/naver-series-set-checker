@@ -85,8 +85,15 @@ def classify_page(current_url: str, body: str) -> tuple[str, str, str]:
         signature = hashlib.sha256(summary.encode("utf-8")).hexdigest()[:24]
         return "sale", summary, signature
 
-    # Guard against a login/interstitial page with a generic site header.
-    if "쿠키 충전" in collapsed and len(collapsed) >= 150:
+    # The rendered purchase page may omit the exact phrase "쿠키 충전":
+    # it can exist only in HTML metadata/hidden navigation elements.
+    # Require the real page URL (checked above), substantial visible text,
+    # and multiple purchase-page labels before marking this as "no sale".
+    purchase_page = (
+        "쿠키 충전" in collapsed
+        or all(word in collapsed for word in ("쿠키", "구매", "보너스"))
+    )
+    if len(collapsed) >= 150 and purchase_page:
         return "no_sale", "", ""
 
     return "error", "충전 페이지 본문 확인에 실패했습니다.", ""
@@ -216,6 +223,10 @@ def notify() -> None:
 def selftest() -> None:
     cases = [
         (URL, "쿠키 충전 일반 쿠키 30개 " * 12, "no_sale"),
+        # Real Pi diagnosis: visible body has "쿠키", "구매", "보너스"
+        # but not the exact phrase "쿠키 충전" (which exists in raw HTML only).
+        (URL, "보너스 쿠키 30개 구매 " * 150, "no_sale"),
+        (URL, "쿠키 30개 구매 " * 150, "error"),
         (URL, "놓치면 사라지는 반짝 쿠키 세일 쿠키 30개 + 보너스 3개 10%", "sale"),
         ("https://nid.naver.com/nidlogin.login", "네이버 로그인", "login_required"),
         (URL, "오류", "error"),
@@ -224,7 +235,7 @@ def selftest() -> None:
         got = classify_page(url, text)[0]
         if got != expected:
             raise AssertionError(f"Expected {expected}, got {got}")
-    print("4 parsing self-tests passed.")
+    print(f"{len(cases)} parsing self-tests passed.")
 
 
 if __name__ == "__main__":

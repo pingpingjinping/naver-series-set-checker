@@ -1,5 +1,55 @@
 {
-  "date": "2026-10-12",
-  "generatedAt": "2026-10-12T06:10:18.842356+09:00",
-  "items": []
+  "date": "2026-10-13",
+  "generatedAt": "2026-10-13T06:10:40.300486+09:00",
+  "items": [
+    {
+      "id": "14855331",
+      "title": "다!다!다! 애장판 [11권세트] (총 11권/완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=14855331",
+      "discount": "28% 할인",
+      "discount_end": ""
+    },
+    {
+      "id": "14855330",
+      "title": "후르츠바스켓 another(어나더) [4권세트] (총 4권/완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=14855330",
+      "discount": "30% 할인",
+      "discount_end": ""
+    },
+    {
+      "id": "14855328",
+      "title": "아름다운 그대에게 [23권 세트] (총 23권/완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=14855328",
+      "discount": "28% 할인",
+      "discount_end": ""
+    },
+    {
+      "id": "14855322",
+      "title": "학원 베이비시터즈[27권 세트] (총 27권/미완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=14855322",
+      "discount": "20% 할인",
+      "discount_end": ""
+    },
+    {
+      "id": "14844895",
+      "title": "손끝과 연연 [13권 세트] (총 13권/미완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=14844895",
+      "discount": "28% 할인",
+      "discount_end": "2026-11-11까지"
+    },
+    {
+      "id": "14845284",
+      "title": "연공 [10권 세트] (총 10권/완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=14845284",
+      "discount": "28% 할인",
+      "discount_end": "2026-11-11까지"
+    },
+    {
+      "id": "14845282",
+      "title": "퍼펙트 월드 [12권 세트] (총 12권/완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=14845282",
+      "discount": "22% 할인",
+      "discount_end": "2026-11-11까지"
+    }
+  ]
 }

@@ -1,0 +1,14 @@
+[Unit]
+Description=Check Naver Series flash cookie sale via local Chromium
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=oneshot
+User=pi
+Environment=HOME=/home/pi
+WorkingDirectory=/home/pi/.local/share/naver-series-set-checker
+ExecStart=/home/pi/.local/share/naver-cookie-check/venv/bin/python /home/pi/.local/share/naver-series-set-checker/pi/cookie_sale_checker.py check
+TimeoutStartSec=290
+Nice=10
+IOSchedulingClass=idle

@@ -1,0 +1,12 @@
+[Unit]
+Description=Send Naver Series cookie sale result to Series Checker Discord
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=oneshot
+User=pi
+Environment=HOME=/home/pi
+WorkingDirectory=/home/pi/.local/share/naver-series-set-checker
+ExecStart=/home/pi/.local/share/naver-cookie-check/venv/bin/python /home/pi/.local/share/naver-series-set-checker/pi/cookie_sale_checker.py notify
+TimeoutStartSec=225

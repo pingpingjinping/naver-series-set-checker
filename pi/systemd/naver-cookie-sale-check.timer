@@ -1,0 +1,12 @@
+[Unit]
+Description=Check Naver Series cookie flash sale at 05:55 and 17:55 KST
+
+[Timer]
+OnCalendar=*-*-* 05,17:55:00
+AccuracySec=1s
+RandomizedDelaySec=0
+Persistent=false
+Unit=naver-cookie-sale-check.service
+
+[Install]
+WantedBy=timers.target

@@ -1,0 +1,71 @@
+name: Naver Series Cookie Sale Alert
+
+on:
+  workflow_dispatch:
+    inputs:
+      kind:
+        description: "sale, login_required or error"
+        required: true
+        type: choice
+        options:
+          - sale
+          - login_required
+          - error
+      details:
+        description: "Short public status text; NEVER send login cookies or tokens"
+        required: false
+        default: ""
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Notify existing Series Checker Discord channel
+        env:
+          SERIES_DISCORD_WEBHOOK: ${{ secrets.SERIES_DISCORD_WEBHOOK }}
+          EVENT_KIND: ${{ inputs.kind }}
+          EVENT_DETAILS: ${{ inputs.details }}
+        run: |
+          python3 - <<'PY'
+          import json
+          import os
+          import urllib.request
+
+          webhook = os.environ.get("SERIES_DISCORD_WEBHOOK", "").strip()
+          if not webhook:
+              raise SystemExit("Missing SERIES_DISCORD_WEBHOOK repository secret")
+
+          kind = os.environ.get("EVENT_KIND", "")
+          details = os.environ.get("EVENT_DETAILS", "").strip()[:400]
+          if kind == "sale":
+              message = "🍪 **네이버 시리즈 반짝 쿠키 세일 감지!**"
+              if details:
+                  message += "\n" + details
+              message += "\nhttps://series.naver.com/my/cookie/sellingList.series"
+          elif kind == "login_required":
+              message = "⚠️ **네이버 시리즈 쿠키 세일 감시: 재로그인 필요**\nWalnutPi의 전용 Chromium 프로필에 다시 로그인해 주세요."
+          elif kind == "error":
+              message = "⚠️ **네이버 시리즈 쿠키 세일 감시 실패**\nWalnutPi에서 로그를 확인해 주세요."
+          else:
+              raise SystemExit("Unsupported notification kind")
+
+          payload = json.dumps({
+              "content": message,
+              "allowed_mentions": {"parse": []},
+          }, ensure_ascii=False).encode("utf-8")
+          request = urllib.request.Request(
+              webhook,
+              data=payload,
+              headers={"Content-Type": "application/json", "User-Agent": "SeriesCheckerCookieSale/1.0"},
+              method="POST",
+          )
+          with urllib.request.urlopen(request, timeout=20) as response:
+              if response.status not in (200, 204):
+                  raise SystemExit("Discord notification failed")
+          print("Series Checker Discord notification delivered.")
+          PY

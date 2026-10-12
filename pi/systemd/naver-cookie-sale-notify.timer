@@ -1,0 +1,12 @@
+[Unit]
+Description=Send Naver Series cookie offer alert at 06:00 and 18:00 KST
+
+[Timer]
+OnCalendar=*-*-* 06,18:00:00
+AccuracySec=1s
+RandomizedDelaySec=0
+Persistent=false
+Unit=naver-cookie-sale-notify.service
+
+[Install]
+WantedBy=timers.target

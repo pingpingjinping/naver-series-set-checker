@@ -1,5 +1,55 @@
 {
-  "date": "2026-10-14",
-  "generatedAt": "2026-10-14T06:10:20.707360+09:00",
-  "items": []
+  "date": "2026-10-15",
+  "generatedAt": "2026-10-15T06:10:44.423121+09:00",
+  "items": [
+    {
+      "id": "14860407",
+      "title": "귀엽기만 한 게 아닌 시키모리 양 [20권 세트] (총 20권/완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=14860407",
+      "discount": "30% 할인",
+      "discount_end": ""
+    },
+    {
+      "id": "14860350",
+      "title": "아마가미 씨네 인연 맺기 [22권 세트] (총 22권/완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=14860350",
+      "discount": "30% 할인",
+      "discount_end": ""
+    },
+    {
+      "id": "14860346",
+      "title": "슈퍼 커브 [코믹][11권 세트] (총 11권/미완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=14860346",
+      "discount": "28% 할인",
+      "discount_end": ""
+    },
+    {
+      "id": "14861828",
+      "title": "우리 길드 아이돌 [3권 세트] (총 3권/미완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=14861828",
+      "discount": "30% 할인",
+      "discount_end": ""
+    },
+    {
+      "id": "14840326",
+      "title": "트릴리온 게임 [9권 세트] (총 9권/미완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=14840326",
+      "discount": "",
+      "discount_end": ""
+    },
+    {
+      "id": "14840325",
+      "title": "달님이 바라시는대로 [8권 세트] (총 8권/미완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=14840325",
+      "discount": "20% 할인",
+      "discount_end": "2026-11-14까지"
+    },
+    {
+      "id": "14840324",
+      "title": "스노우볼 어스 [3권 세트] (총 3권/미완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=14840324",
+      "discount": "20% 할인",
+      "discount_end": "2026-11-14까지"
+    }
+  ]
 }

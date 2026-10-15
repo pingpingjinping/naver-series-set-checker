@@ -1,54 +1,131 @@
 {
-  "date": "2026-10-15",
-  "generatedAt": "2026-10-15T06:10:44.423121+09:00",
+  "date": "2026-10-16",
+  "generatedAt": "2026-10-16T06:11:04.813478+09:00",
   "items": [
     {
-      "id": "14860407",
-      "title": "귀엽기만 한 게 아닌 시키모리 양 [20권 세트] (총 20권/완결)",
-      "url": "https://series.naver.com/comic/detail.series?productNo=14860407",
+      "id": "14870493",
+      "title": "책벌레의 하극상 제4부 [11권 세트] (총 11권/미완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=14870493",
       "discount": "30% 할인",
-      "discount_end": ""
+      "discount_end": "2026-11-16까지"
     },
     {
-      "id": "14860350",
-      "title": "아마가미 씨네 인연 맺기 [22권 세트] (총 22권/완결)",
-      "url": "https://series.naver.com/comic/detail.series?productNo=14860350",
+      "id": "14870477",
+      "title": "마왕의 딸은 너무 친절해!! [7권 세트] (총 7권/완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=14870477",
       "discount": "30% 할인",
-      "discount_end": ""
+      "discount_end": "2026-11-16까지"
     },
     {
-      "id": "14860346",
-      "title": "슈퍼 커브 [코믹][11권 세트] (총 11권/미완결)",
-      "url": "https://series.naver.com/comic/detail.series?productNo=14860346",
+      "id": "14870476",
+      "title": "이세계 주점 노부 [20권 세트] (총 20권/미완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=14870476",
+      "discount": "30% 할인",
+      "discount_end": "2026-11-16까지"
+    },
+    {
+      "id": "14864434",
+      "title": "우리들은 미쳤다 연모 [4권 세트] (총 4권/미완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=14864434",
+      "discount": "30% 할인",
+      "discount_end": "2026-11-12까지"
+    },
+    {
+      "id": "14864374",
+      "title": "상냥한 밀크 [5권 세트] (총 5권/미완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=14864374",
+      "discount": "30% 할인",
+      "discount_end": "2026-11-12까지"
+    },
+    {
+      "id": "14845287",
+      "title": "GACHIAKUTA [18권 세트] (총 18권/미완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=14845287",
       "discount": "28% 할인",
-      "discount_end": ""
+      "discount_end": "2026-11-14까지"
     },
     {
-      "id": "14861828",
-      "title": "우리 길드 아이돌 [3권 세트] (총 3권/미완결)",
-      "url": "https://series.naver.com/comic/detail.series?productNo=14861828",
+      "id": "14870498",
+      "title": "사랑스런 쿠니타마 [7권 세트] (총 7권/미완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=14870498",
       "discount": "30% 할인",
-      "discount_end": ""
+      "discount_end": "2026-11-16까지"
     },
     {
-      "id": "14840326",
-      "title": "트릴리온 게임 [9권 세트] (총 9권/미완결)",
-      "url": "https://series.naver.com/comic/detail.series?productNo=14840326",
+      "id": "14870497",
+      "title": "악당 얼굴의 B급 모험가 주인공과 그 소꿉친구들의 아빠가 되다 [4권 세트] (총 4권/미완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=14870497",
+      "discount": "28% 할인",
+      "discount_end": "2026-11-16까지"
+    },
+    {
+      "id": "14870495",
+      "title": "종언의 마녀와 세계 여행 [4권 세트] (총 4권/완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=14870495",
+      "discount": "28% 할인",
+      "discount_end": "2026-11-16까지"
+    },
+    {
+      "id": "14870494",
+      "title": "사악한 신의 도시락 가게 [4권 세트] (총 4권/완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=14870494",
+      "discount": "30% 할인",
+      "discount_end": "2026-11-16까지"
+    },
+    {
+      "id": "14870492",
+      "title": "책벌레의 하극상 제3부 [9권 세트] (총 9권/미완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=14870492",
+      "discount": "30% 할인",
+      "discount_end": "2026-11-16까지"
+    },
+    {
+      "id": "14870489",
+      "title": "책벌레의 하극상 제1~2부 [20권 세트] (총 20권/완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=14870489",
+      "discount": "30% 할인",
+      "discount_end": "2026-11-16까지"
+    },
+    {
+      "id": "14864462",
+      "title": "좋아하는 남자와 헤어지고 싶어 [6권 세트] (총 6권/완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=14864462",
       "discount": "",
       "discount_end": ""
     },
     {
-      "id": "14840325",
-      "title": "달님이 바라시는대로 [8권 세트] (총 8권/미완결)",
-      "url": "https://series.naver.com/comic/detail.series?productNo=14840325",
-      "discount": "20% 할인",
+      "id": "14864460",
+      "title": "그날 밤부터 너를 사랑했다 [4권 세트] (총 4권/완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=14864460",
+      "discount": "28% 할인",
+      "discount_end": "2026-11-12까지"
+    },
+    {
+      "id": "14864459",
+      "title": "허그 키스 허그 [5권 세트] (총 5권/미완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=14864459",
+      "discount": "",
+      "discount_end": ""
+    },
+    {
+      "id": "14864382",
+      "title": "우리들은 미쳤다 [19권 세트] (총 19권/완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=14864382",
+      "discount": "30% 할인",
+      "discount_end": "2026-11-12까지"
+    },
+    {
+      "id": "14845291",
+      "title": "불꽃 소방대 [34권 세트] (총 34권/완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=14845291",
+      "discount": "28% 할인",
       "discount_end": "2026-11-14까지"
     },
     {
-      "id": "14840324",
-      "title": "스노우볼 어스 [3권 세트] (총 3권/미완결)",
-      "url": "https://series.naver.com/comic/detail.series?productNo=14840324",
-      "discount": "20% 할인",
+      "id": "14845289",
+      "title": "강철의 연금술사 완전판 [18권 세트] (총 18권/완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=14845289",
+      "discount": "29% 할인",
       "discount_end": "2026-11-14까지"
     }
   ]

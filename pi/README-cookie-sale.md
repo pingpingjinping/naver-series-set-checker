@@ -7,7 +7,8 @@ This optional integration does **not** modify Violet DB sync, set watching, or p
 - **05:55 / 17:55:** run Chromium with the existing logged-in Pi profile. Wait a *real* 60 seconds after the page starts loading and inspect the rendered body text.
 - **06:00 / 18:00:** if there is a new '반짝 쿠키 세일', dispatch the result to this repository's `cookie-sale-alert.yml` GitHub Actions workflow.
 - GitHub Actions forwards the brief offer info to the existing `SERIES_DISCORD_WEBHOOK` repository secret. **The Discord webhook and login profile/cookies stay in their original locations.**
-- No sale → no message; same continuous offer → no repeat message. Login required or check error → warn once until status is healthy.
+- No sale → no message. Once a purchasable package (e.g. 30+3) has been alerted, skip it on later sales even if a no-sale day intervenes, unless **the checker observed `구매 완료` for that package and later sees its expected price button again**. A different package (e.g. 100+5) gets its own alert. Login required or check error → warn once until status is healthy.
+- Only parse product/button text inside the **`이벤트 적용 상품`** block under the flash-sale banner; prices in **`이벤트 미적용 상품`** must never count. Base cookie costs 100 KRW each (30 → 3,000원, 100 → 10,000원). If the event-applied button cannot be identified as a price or `구매 완료`, record `unknown` and do not send an unconfirmed sale alert.
 - The two pairs of Pi timers have `Persistent=false`, so a reboot does not send stale missed event alerts.
 - GitHub Actions can start a few minutes late, so Discord delivery is not guaranteed at precisely 06:00/18:00.
 
@@ -48,7 +49,7 @@ sudo systemctl start naver-cookie-sale-notify.service
 sudo journalctl -u naver-cookie-sale-notify.service -n 25 --no-pager
 ```
 
-The checker deliberately waits one minute, so the Pi has time to render the page. The only state stored is a non-sensitive summary in `~/.local/share/naver-cookie-check/watch-state.json`. Do not share profile contents or PAT in support chats. If page markup changes, refine the detector using **redacted** excerpts from the rendered text, not raw cookies, login data, or full HTML.
+The checker deliberately waits one minute, so the Pi has time to render the page. Run `~/.local/share/naver-cookie-check/venv/bin/python ~/.local/share/naver-series-set-checker/pi/cookie_sale_checker.py selftest` before live testing. A fresh `check` followed by `notify` is required for valid no-sale/no-alert testing. The state (non-sensitive offer composition, purchased/available status, and deduplication history) is stored in `~/.local/share/naver-cookie-check/watch-state.json`. Do not share profile contents or PAT in support chats. If page markup changes, refine the detector using **redacted** excerpts from the rendered text, not raw cookies, login data, or full HTML.
 
 ## Uninstall scheduled checks
 

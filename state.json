@@ -217,20 +217,6 @@
       "date": "",
       "meta": ""
     },
-    "14688648": {
-      "id": "14688648",
-      "title": "어디까지 괜찮아 [98화 세트] (총 98화/미완결)",
-      "url": "https://series.naver.com/comic/detail.series?productNo=14688648",
-      "date": "",
-      "meta": ""
-    },
-    "14688640": {
-      "id": "14688640",
-      "title": "햄버거가 제일 좋아 [50화 세트] (총 50화/완결)",
-      "url": "https://series.naver.com/comic/detail.series?productNo=14688640",
-      "date": "",
-      "meta": ""
-    },
     "14844074": {
       "id": "14844074",
       "title": "도나츠와 서커스 [2권 세트] (총 2권/미완결)",
@@ -524,6 +510,24 @@
       "url": "https://series.naver.com/comic/detail.series?productNo=14813537",
       "date": "",
       "meta": ""
+    },
+    "14813536": {
+      "id": "14813536",
+      "title": "파티피플 공명 [23권 세트] (총 23권/미완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=14813536",
+      "date": "",
+      "meta": "",
+      "discount": "28% 할인",
+      "discount_end": "2026-11-02까지"
+    },
+    "14812556": {
+      "id": "14812556",
+      "title": "성녀, 용사 파티에서 해고 당해 길드를 만들었더니 내 집 같은 최강의 길드로 성장했습니다 [4권 세트] (총 4권/미완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=14812556",
+      "date": "",
+      "meta": "",
+      "discount": "30% 할인",
+      "discount_end": ""
     }
   }
 }

@@ -1,48 +1,69 @@
 {
-  "date": "2026-10-21",
-  "generatedAt": "2026-10-21T06:10:39.164433+09:00",
+  "date": "2026-10-22",
+  "generatedAt": "2026-10-22T06:10:49.151022+09:00",
   "items": [
     {
-      "id": "14824607",
-      "title": "무사시노 윤무곡 [5권 세트] (총 5권/미완결)",
-      "url": "https://series.naver.com/comic/detail.series?productNo=14824607",
+      "id": "14905799",
+      "title": "고문 아르바이트의 일상 [6권 세트] (총 6권/미완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=14905799",
       "discount": "28% 할인",
       "discount_end": ""
     },
     {
-      "id": "14824573",
-      "title": "세습제 트라이앵글 [2권 세트] (총 2권/완결)",
-      "url": "https://series.naver.com/comic/detail.series?productNo=14824573",
+      "id": "14900581",
+      "title": "동네술집 와카오 ~와카코와 술 체인점~ [7권 세트] (총 7권/미완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=14900581",
+      "discount": "30% 할인",
+      "discount_end": ""
+    },
+    {
+      "id": "14900577",
+      "title": "와카코와 술 [25권 세트] (총 25권/미완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=14900577",
+      "discount": "30% 할인",
+      "discount_end": ""
+    },
+    {
+      "id": "14862675",
+      "title": "환생했는데 제7왕자라 내맘대로 마술을 연마합니다 [22권 세트] (총 22권/미완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=14862675",
+      "discount": "28% 할인",
+      "discount_end": "2026-11-20까지"
+    },
+    {
+      "id": "14868635",
+      "title": "슈퍼 달링 님과 슈퍼 달링 군 [3권 세트] (총 3권/완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=14868635",
+      "discount": "",
+      "discount_end": ""
+    },
+    {
+      "id": "14862639",
+      "title": "텐프리즘 [12권 세트] (총 12권/완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=14862639",
+      "discount": "28% 할인",
+      "discount_end": "2026-11-20까지"
+    },
+    {
+      "id": "14862676",
+      "title": "유큐홀더!(UQ HOLDER!) [28권 세트] (총 28권/완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=14862676",
+      "discount": "",
+      "discount_end": ""
+    },
+    {
+      "id": "14840329",
+      "title": "켄투리아 [5권 세트] (총 5권/미완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=14840329",
       "discount": "20% 할인",
-      "discount_end": ""
+      "discount_end": "2026-10-22까지"
     },
     {
-      "id": "14813538",
-      "title": "그랑블루 [26권 세트] (총 26권/미완결)",
-      "url": "https://series.naver.com/comic/detail.series?productNo=14813538",
-      "discount": "30% 할인",
-      "discount_end": "2026-11-02까지"
-    },
-    {
-      "id": "14813537",
-      "title": "요괴 아파트의 우아한 일상 [33권 세트] (총 33권/미완결)",
-      "url": "https://series.naver.com/comic/detail.series?productNo=14813537",
-      "discount": "28% 할인",
-      "discount_end": "2026-11-02까지"
-    },
-    {
-      "id": "14813536",
-      "title": "파티피플 공명 [23권 세트] (총 23권/미완결)",
-      "url": "https://series.naver.com/comic/detail.series?productNo=14813536",
-      "discount": "28% 할인",
-      "discount_end": "2026-11-02까지"
-    },
-    {
-      "id": "14812556",
-      "title": "성녀, 용사 파티에서 해고 당해 길드를 만들었더니 내 집 같은 최강의 길드로 성장했습니다 [4권 세트] (총 4권/미완결)",
-      "url": "https://series.naver.com/comic/detail.series?productNo=14812556",
-      "discount": "30% 할인",
-      "discount_end": ""
+      "id": "14840328",
+      "title": "어서 오세요 아오하루에 [4권 세트] (총 4권/미완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=14840328",
+      "discount": "20% 할인",
+      "discount_end": "2026-11-21까지"
     }
   ]
 }

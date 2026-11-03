@@ -1,5 +1,48 @@
 {
-  "date": "2026-11-03",
-  "generatedAt": "2026-11-03T06:10:18.896896+09:00",
-  "items": []
+  "date": "2026-11-04",
+  "generatedAt": "2026-11-04T06:10:39.690818+09:00",
+  "items": [
+    {
+      "id": "14938551",
+      "title": "DEAD ROCK (데드 록) [7권 세트] (총 7권/미완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=14938551",
+      "discount": "28% 할인",
+      "discount_end": "2026-12-03까지"
+    },
+    {
+      "id": "14958064",
+      "title": "여섯 명의 거짓말쟁이 대학생 [3권 세트] (총 3권/완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=14958064",
+      "discount": "31% 할인",
+      "discount_end": ""
+    },
+    {
+      "id": "14938612",
+      "title": "레이브 [35권 세트] (총 35권/완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=14938612",
+      "discount": "28% 할인",
+      "discount_end": "2026-12-03까지"
+    },
+    {
+      "id": "14938554",
+      "title": "페어리 테일 [63권 세트] (총 63권/완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=14938554",
+      "discount": "28% 할인",
+      "discount_end": "2026-12-03까지"
+    },
+    {
+      "id": "14938553",
+      "title": "페어리 테일 100년 퀘스트 [22권 세트] (총 22권/미완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=14938553",
+      "discount": "30% 할인",
+      "discount_end": "2026-12-03까지"
+    },
+    {
+      "id": "14938552",
+      "title": "에덴즈 제로(EDENS ZERO) [33권 세트] (총 33권/완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=14938552",
+      "discount": "28% 할인",
+      "discount_end": "2026-12-03까지"
+    }
+  ]
 }

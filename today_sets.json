@@ -1,5 +1,125 @@
 {
-  "date": "2026-11-11",
-  "generatedAt": "2026-11-11T06:10:20.872207+09:00",
-  "items": []
+  "date": "2026-11-12",
+  "generatedAt": "2026-11-12T06:11:19.187266+09:00",
+  "items": [
+    {
+      "id": "15001927",
+      "title": "중간관리록 토네가와 [10권 세트] (총 10권/완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=15001927",
+      "discount": "27% 할인",
+      "discount_end": ""
+    },
+    {
+      "id": "15001825",
+      "title": "아카기 [36권 세트] (총 36권/완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=15001825",
+      "discount": "28% 할인",
+      "discount_end": ""
+    },
+    {
+      "id": "15001822",
+      "title": "도박타천록 카이지 원포커 편 [16권 세트] (총 16권/완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=15001822",
+      "discount": "28% 할인",
+      "discount_end": ""
+    },
+    {
+      "id": "15001806",
+      "title": "도박묵시록 카이지 카즈야 편 [10권 세트] (총 10권/완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=15001806",
+      "discount": "28% 할인",
+      "discount_end": ""
+    },
+    {
+      "id": "15001803",
+      "title": "도박묵시록 카이지 [39권 세트] (총 39권/미완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=15001803",
+      "discount": "28% 할인",
+      "discount_end": ""
+    },
+    {
+      "id": "15001759",
+      "title": "장하다! 원조 괴짜가족 [14권 세트] (총 14권/미완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=15001759",
+      "discount": "30% 할인",
+      "discount_end": ""
+    },
+    {
+      "id": "15001707",
+      "title": "도박타천록 카이지 24억 탈출편 [25권 세트] (총 25권/미완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=15001707",
+      "discount": "28% 할인",
+      "discount_end": ""
+    },
+    {
+      "id": "14981933",
+      "title": "수부외과 [10권 세트] (총 10권/완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=14981933",
+      "discount": "30% 할인",
+      "discount_end": "2026-12-11까지"
+    },
+    {
+      "id": "14992024",
+      "title": "그와 그의 연애방식 [3권 세트] (총 3권/완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=14992024",
+      "discount": "",
+      "discount_end": ""
+    },
+    {
+      "id": "14992023",
+      "title": "남친 있어요 [6권 세트] (총 6권/완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=14992023",
+      "discount": "",
+      "discount_end": ""
+    },
+    {
+      "id": "14992022",
+      "title": "비의도적 연애담 [무삭제판][6권 세트] (총 6권/완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=14992022",
+      "discount": "",
+      "discount_end": ""
+    },
+    {
+      "id": "14981942",
+      "title": "종말의 세라프 [34권 세트] (총 34권/미완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=14981942",
+      "discount": "20% 할인",
+      "discount_end": "2026-12-11까지"
+    },
+    {
+      "id": "14981928",
+      "title": "원피스 [114권 세트] (총 114권/미완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=14981928",
+      "discount": "20% 할인",
+      "discount_end": "2026-12-11까지"
+    },
+    {
+      "id": "15002916",
+      "title": "연애혁명 [38권 세트] (총 38권/완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=15002916",
+      "discount": "30% 할인",
+      "discount_end": ""
+    },
+    {
+      "id": "15000274",
+      "title": "야수는 죽어야 한다 [10권 세트] (총 10권/완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=15000274",
+      "discount": "",
+      "discount_end": ""
+    },
+    {
+      "id": "15000271",
+      "title": "이방인 [7권 세트] (총 7권/완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=15000271",
+      "discount": "",
+      "discount_end": ""
+    },
+    {
+      "id": "15000270",
+      "title": "열병 [11권 세트] (총 11권/완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=15000270",
+      "discount": "",
+      "discount_end": ""
+    }
+  ]
 }

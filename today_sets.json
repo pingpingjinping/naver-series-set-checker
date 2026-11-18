@@ -1,13 +1,83 @@
 {
-  "date": "2026-11-18",
-  "generatedAt": "2026-11-18T06:10:27.032833+09:00",
+  "date": "2026-11-19",
+  "generatedAt": "2026-11-19T06:11:07.813884+09:00",
   "items": [
     {
-      "id": "15032275",
-      "title": "문제적 왕자님 [3권 세트] (총 3권/미완결)",
-      "url": "https://series.naver.com/comic/detail.series?productNo=15032275",
+      "id": "15019369",
+      "title": "녹아내리는 입술 [3권 세트] (총 3권/완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=15019369",
+      "discount": "",
+      "discount_end": ""
+    },
+    {
+      "id": "15037778",
+      "title": "알 수 없는 이유로 파혼 당했습니다만, 가면 아래가 추하다니 대체 누가 그런 말을 한 걸까요? [4권 세트] (총 4권/완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=15037778",
+      "discount": "28% 할인",
+      "discount_end": ""
+    },
+    {
+      "id": "15037776",
+      "title": "화선 공주 야화 그 미인, 후궁의 어둠을 베다 [6권 세트] (총 6권/완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=15037776",
       "discount": "30% 할인",
       "discount_end": ""
+    },
+    {
+      "id": "15037728",
+      "title": "캐릭캐릭 체인지! 신장판 [7권 세트] (총 6권/완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=15037728",
+      "discount": "30% 할인",
+      "discount_end": ""
+    },
+    {
+      "id": "15037578",
+      "title": "캐릭캐릭 체인지! Jewel Joker (주얼 조커) [4권 세트] (총 4권/미완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=15037578",
+      "discount": "28% 할인",
+      "discount_end": ""
+    },
+    {
+      "id": "15037575",
+      "title": "전생 마녀는 멸망을 고한다 [9권 세트] (총 9권/미완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=15037575",
+      "discount": "30% 할인",
+      "discount_end": ""
+    },
+    {
+      "id": "15037572",
+      "title": "역사에 남을 악녀가 될 거야 [6권 세트] (총 6권/미완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=15037572",
+      "discount": "30% 할인",
+      "discount_end": ""
+    },
+    {
+      "id": "15038376",
+      "title": "캐스니어 비망록 [60화 세트] (총 60화/완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=15038376",
+      "discount": "",
+      "discount_end": ""
+    },
+    {
+      "id": "15010556",
+      "title": "아야카시 장의사 [5권 세트] (총 5권/완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=15010556",
+      "discount": "29% 할인",
+      "discount_end": "2026-12-18까지"
+    },
+    {
+      "id": "15010559",
+      "title": "할렐루야 베이비 [4권 세트] (총 4권/미완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=15010559",
+      "discount": "",
+      "discount_end": ""
+    },
+    {
+      "id": "15010549",
+      "title": "카구라바치 [10권 세트] (총 10권/미완결)",
+      "url": "https://series.naver.com/comic/detail.series?productNo=15010549",
+      "discount": "20% 할인",
+      "discount_end": "2026-12-18까지"
     }
   ]
 }

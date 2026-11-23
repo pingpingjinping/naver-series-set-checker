@@ -136,6 +136,56 @@ def classify_page(current_url: str, body: str) -> tuple[str, str, list[dict]]:
     return "error", "충전 페이지 본문 확인에 실패했습니다.", []
 
 
+def sale_offer_keys(offers: list[dict]) -> list[str]:
+    """Stable campaign identity, independent of listing order or button state."""
+    return sorted({str(o["key"]) for o in offers if o.get("key")})
+
+
+def track_sale_cycle(state: dict, status: str, offers: list[dict]) -> None:
+    """Re-arm an offer when a confirmed sale disappears or its package set changes.
+
+    A login failure, parser error, or unrecognized purchase button must not
+    count as a confirmed sale ending. On upgrade, derive the previous campaign
+    from last_check so an unchanged sale does not produce a surprise alert.
+    """
+    if status == "no_sale":
+        state["active_offer_keys"] = []
+        return
+    if status != "sale":
+        return
+
+    current_keys = sale_offer_keys(offers)
+    if not current_keys:
+        return
+
+    if "active_offer_keys" in state:
+        previous_keys = state["active_offer_keys"]
+    else:
+        last_check = state.get("last_check") or {}
+        previous_status = last_check.get("status")
+        if previous_status == "sale":
+            previous_keys = sale_offer_keys(last_check.get("offers") or [])
+        elif previous_status == "no_sale":
+            previous_keys = []
+        else:
+            # Unknown history: do not re-arm a potentially ongoing campaign.
+            previous_keys = None
+
+    if previous_keys is not None and previous_keys != current_keys:
+        history = state.setdefault("offer_history", {})
+        for offer in offers:
+            key = offer["key"]
+            entry = history.setdefault(
+                key, {"generation": 0, "notified_generation": -1, "last_known": "unknown"}
+            )
+            entry["notified_generation"] = entry.get("generation", 0) - 1
+        # A legacy one-off digest must not silently re-suppress the new cycle.
+        state.pop("notified_offer", None)
+        print(f"Cookie sale cycle changed: {previous_keys} -> {current_keys}; alerts re-armed")
+
+    state["active_offer_keys"] = current_keys
+
+
 def advance_offer_history(state: dict, offers: list[dict]) -> None:
     """Persist purchase transitions across no-sale days and repeated offer types."""
     history = state.setdefault("offer_history", {})
@@ -211,6 +261,7 @@ def check() -> None:
         # Never log the Chromium profile, cookies, full HTML or auth tokens.
         print(f"check failed ({type(exc).__name__})", file=sys.stderr)
 
+    track_sale_cycle(previous, status, offers)
     if status == "sale":
         advance_offer_history(previous, offers)
     if status in ("no_sale", "sale"):
